@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>入退室管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            flex-direction: column; /* Allow content to stack vertically */
+            justify-content: flex-start; /* Align content to the top */
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            width: 100%;
+            max-width: 480px; /* Slightly wider for better mobile input */
+            text-align: center;
+            margin-bottom: 2rem; /* Space below the input form */
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #cbd5e1; /* Lighter border */
+            border-radius: 0.5rem; /* Rounded input fields */
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s ease-in-out;
+            background-color: #ffffff; /* Ensure select background is white */
+        }
+        input[type="text"]:focus {
+            border-color: #6366f1; /* Focus color */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Soft focus ring */
+        }
+        .room-buttons-group {
+            display: grid; /* Use grid for responsive layout */
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Auto-fit columns */
+            gap: 0.75rem; /* Space between buttons */
+            margin-bottom: 1.5rem;
+        }
+        .room-button {
+            padding: 0.75rem 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #4a5568; /* Darker text for unselected */
+            background-color: #e2e8f0; /* Light gray background */
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .room-button:hover {
+            background-color: #d1d9e6;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .room-button.selected {
+            background-color: #6366f1; /* Indigo for selected */
+            color: #ffffff;
+            border-color: #4f46e5;
+            box-shadow: 0 4px 8px rgba(99, 102, 241, 0.2);
+            transform: translateY(-1px);
+        }
+        .room-button.selected:hover {
+            background-color: #4f46e5;
+        }
+
+        .action-button-group { /* Renamed from button-group to avoid conflict */
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .action-button {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #ffffff;
+            border: none;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .entry-button {
+            background-color: #22c55e; /* Green for entry */
+        }
+        .entry-button:hover {
+            background-color: #16a34a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+        .exit-button {
+            background-color: #ef4444; /* Red for exit */
+        }
+        .exit-button:hover {
+            background-color: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+        .status-message {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #e0f2fe; /* Light blue for messages */
+            color: #0c4a6e; /* Darker blue text */
+            border-left: 4px solid #38bdf8; /* Accent border */
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            text-align: left;
+            word-wrap: break-word; /* Ensure long messages wrap */
+        }
+        /* Room Status Display */
+        .room-status-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px; /* Wider for room list */
+            text-align: left;
+        }
+        .room-list {
+            margin-top: 1.5rem;
+        }
+        .room-item {
+            background-color: #f7fafc; /* Light gray for room background */
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .room-item:last-child {
+            margin-bottom: 0;
+        }
+        /* Table styles */
+        .occupant-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.75rem;
+            font-size: 0.9rem;
+        }
+        .occupant-table th, .occupant-table td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem 0.5rem;
+            text-align: left;
+        }
+        .occupant-table th {
+            background-color: #edf2f7;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        .occupant-table td {
+            color: #4a5568;
+        }
+        .no-occupants {
+            font-style: italic;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 640px) {
+            .container, .room-status-container {
+                padding: 1.5rem;
+            }
+            .action-button {
+                font-size: 1rem;
+                padding: 0.8rem 1.2rem;
+            }
+            .action-button-group {
+                flex-direction: column; /* Stack buttons on small screens */
+                gap: 0.75rem;
+            }
+            .room-button {
+                font-size: 0.85rem; /* Smaller font for room buttons on small screens */
+                padding: 0.6rem 0.4rem;
+            }
+            .occupant-table th, .occupant-table td {
+                padding: 0.5rem 0.3rem; /* Smaller padding for tables on small screens */
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">入退室管理</h1>
+
+        <div class="mb-4">
+            <label for="userName" class="block text-gray-700 text-sm font-medium mb-2 text-left">氏名:</label>
+            <input type="text" id="userName" placeholder="あなたの名前を入力してください" class="focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-medium mb-2 text-left">部屋番号:</label>
+            <div id="roomButtons" class="room-buttons-group">
+                <button class="room-button" data-room="部屋1">部屋1</button>
+                <button class="room-button" data-room="部屋2">部屋2</button>
+                <button class="room-button" data-room="部屋3">部屋3</button>
+                <button class="room-button" data-room="部屋4">部屋4</button>
+                <button class="room-button" data-room="部屋5">部屋5</button>
+            </div>
+        </div>
+
+        <div class="action-button-group">
+            <button id="entryButton" class="action-button entry-button">入室</button>
+            <button id="exitButton" class="action-button exit-button">退室</button>
+        </div>
+
+        <div id="statusMessage" class="status-message hidden"></div>
+    </div>
+
+    <div class="room-status-container">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">現在の部屋の状況</h2>
+        <div id="roomStatusList" class="room-list">
+            <p class="text-gray-500 text-center">部屋の状況を読み込み中...</p>
+        </div>
+    </div>
+
+    <script>
+        // ★★★ 非常に重要: ここにデプロイしたGASウェブアプリのURLを正確に貼り付けてください ★★★
+        // 例: 'https://script.google.com/macros/s/AKfycxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/exec'
+        // 注意: シングルクォーテーション(')の中にURLを貼り付け、余分なスペースや文字が入らないようにしてください。
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxdODu4wkkEYuPxM26ybsty5WgLeBaucXtP8-qk1VgE0ObL0Qbvd6DtLg_UsDv_ywKMQw/exec'; 
+
+        // 部屋の数 (GASスクリプトと合わせる)
+        const ROOM_COUNT = 5;
+        let selectedRoom = null; // 現在選択されている部屋を保持する変数
+        // clientRoomOccupancyはクライアントサイドでの表示更新のためだけに使用し、真のデータはGAS/スプレッドシートに保存されます
+        let clientRoomOccupancy = {}; 
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const userNameInput = document.getElementById('userName');
+            const roomButtonsContainer = document.getElementById('roomButtons');
+            const roomButtons = document.querySelectorAll('.room-button'); // 全ての部屋ボタン
+            const entryButton = document.getElementById('entryButton');
+            const exitButton = document.getElementById('exitButton');
+            const statusMessageDiv = document.getElementById('statusMessage');
+            const roomStatusListDiv = document.getElementById('roomStatusList');
+
+            // Googleフォーム連携用のID (GAS経由での連携に置き換わるため、直接は使用しませんが参照として残します)
+            const NAME_ENTRY_ID = 'YOUR_NAME_ENTRY_ID';
+            const STATUS_ENTRY_ID = 'YOUR_STATUS_ENTRY_ID';
+            const ROOM_ENTRY_ID = 'YOUR_ROOM_ENTRY_ID';
+
+            /**
+             * ステータスメッセージを表示する関数
+             * @param {string} message - 表示するメッセージ
+             * @param {boolean} isError - エラーメッセージかどうか (色を変えるため)
+             */
+            function showStatusMessage(message, isError = false) {
+                statusMessageDiv.textContent = message;
+                statusMessageDiv.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'border-red-400', 'bg-blue-100', 'text-blue-800', 'border-blue-400');
+                statusMessageDiv.classList.add('block');
+                if (isError) {
+                    statusMessageDiv.classList.add('bg-red-100', 'text-red-800', 'border-red-400');
+                } else {
+                    statusMessageDiv.classList.add('bg-blue-100', 'text-blue-800', 'border-blue-400');
+                }
+            }
+
+            /**
+             * 滞在時間をフォーマットする関数 (HH:MM 形式)
+             * @param {number} milliseconds - 滞在時間 (ミリ秒)
+             * @returns {string} フォーマットされた文字列 (例: "01:30")
+             */
+            function formatDuration(milliseconds) {
+                const totalSeconds = Math.floor(milliseconds / 1000);
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+                const pad = (num) => num.toString().padStart(2, '0');
+
+                // 滞在時間が0分未満の場合は「00:00」と表示
+                if (hours < 0 || minutes < 0) return "00:00"; 
+                return `${pad(hours)}:${pad(minutes)}`;
+            }
+
+            /**
+             * 部屋の状況表示を更新する関数
+             * @param {object} currentRoomOccupancy - GASから取得した現在の部屋状況データ
+             */
+            function updateRoomStatusDisplay(currentRoomOccupancy) {
+                let html = '';
+                let allRoomsEmpty = true;
+
+                // clientRoomOccupancyを更新
+                clientRoomOccupancy = currentRoomOccupancy;
+
+                for (let i = 1; i <= ROOM_COUNT; i++) {
+                    const roomName = `部屋${i}`;
+                    const occupants = currentRoomOccupancy[roomName] || []; // 部屋が存在しない場合や空の場合に備える
+
+                    html += `
+                        <div class="room-item">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-2">${roomName}</h3>
+                    `;
+                    if (occupants.length > 0) {
+                        allRoomsEmpty = false;
+                        html += `
+                            <table class="occupant-table">
+                                <thead>
+                                    <tr>
+                                        <th>入室</th>
+                                        <th>氏名</th>
+                                        <th>滞在</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+                        occupants.forEach(occupant => {
+                            const entryTime = new Date(occupant.entryTime); // GASから来たタイムスタンプ (ミリ秒) をDateに変換
+                            const now = new Date();
+                            const stayDuration = now.getTime() - entryTime.getTime();
+                            html += `
+                                    <tr>
+                                        <td>${entryTime.toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'})}</td>
+                                        <td>${occupant.name}</td>
+                                        <td>${formatDuration(stayDuration)}</td>
+                                    </tr>
+                            `;
+                        });
+                        html += `
+                                </tbody>
+                            </table>
+                        `;
+                    } else {
+                        html += `<p class="no-occupants">誰も入室していません。</p>`;
+                    }
+                    html += `</div>`;
+                }
+
+                if (allRoomsEmpty) {
+                    html = '<p class="text-gray-500 text-center">現在、全ての部屋に誰も入室していません。</p>';
+                }
+
+                roomStatusListDiv.innerHTML = html;
+            }
+
+            /**
+             * GASウェブアプリから部屋の状況を取得して表示を更新する関数
+             */
+            async function fetchRoomStatus() {
+                try {
+                    // ここでGAS_WEB_APP_URLが正しく設定されているかを確認
+                    if (GAS_WEB_APP_URL === 'YOUR_GAS_WEB_APP_URL_HERE' || !GAS_WEB_APP_URL.startsWith('https://script.google.com/macros/s/')) {
+                        console.error("GAS_WEB_APP_URLが正しく設定されていません。GASをデプロイし、発行されたURLを貼り付けてください。");
+                        showStatusMessage("エラー: GASのURLが設定されていません。管理者にご連絡ください。", true);
+                        return; // URLが不正な場合は処理を中断
+                    }
+
+                    const response = await fetch(GAS_WEB_APP_URL, {
+                        method: 'GET',
+                        mode: 'cors' // CORSを許可
+                    });
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    if (data.error) {
+                        showStatusMessage(`エラー: ${data.error}`, true);
+                    } else {
+                        updateRoomStatusDisplay(data); // GASから取得したデータで表示を更新
+                    }
+                } catch (error) {
+                    console.error('部屋状況の取得エラー:', error);
+                    showStatusMessage(`部屋状況の取得に失敗しました。${error.message}`, true);
+                }
+            }
+
+            /**
+             * 入退室アクションをGASウェブアプリに送信する関数
+             * @param {string} status - '入室' または '退室'
+             */
+            async function sendActionToGAS(status) {
+                const userName = userNameInput.value.trim();
+                const roomNumber = selectedRoom; // 選択された部屋番号を使用
+
+                if (!userName) {
+                    showStatusMessage('氏名を入力してください。', true);
+                    return;
+                }
+                if (!roomNumber) {
+                    showStatusMessage('部屋番号を選択してください。', true);
+                    return;
+                }
+
+                // ここでGAS_WEB_APP_URLが正しく設定されているかを確認
+                if (GAS_WEB_APP_URL === 'YOUR_GAS_WEB_APP_URL_HERE' || !GAS_WEB_APP_URL.startsWith('https://script.google.com/macros/s/')) {
+                    console.error("GAS_WEB_APP_URLが正しく設定されていません。GASをデプロイし、発行されたURLを貼り付けてください。");
+                    showStatusMessage("エラー: GASのURLが設定されていません。管理者にご連絡ください。", true);
+                    return; // URLが不正な場合は処理を中断
+                }
+
+                showStatusMessage(`${userName}さんが${roomNumber}で${status}を記録しています...`);
+
+                try {
+                    const response = await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            name: userName,
+                            room: roomNumber,
+                            status: status
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    if (result.success) {
+                        showStatusMessage(result.message);
+                        userNameInput.value = ''; // 入力フィールドをクリア
+                        // selectedRoomは維持（続けて同じ部屋で操作するため）
+                        updateRoomStatusDisplay(result.roomOccupancy); // GASから返された最新の状況で表示を更新
+                    } else {
+                        showStatusMessage(`エラー: ${result.message}`, true);
+                    }
+
+                } catch (error) {
+                    console.error('GASへの送信エラー:', error);
+                    showStatusMessage(`記録に失敗しました。${error.message}`, true);
+                }
+            }
+
+            // 部屋ボタンのクリックイベントリスナーを設定
+            roomButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // 全てのボタンから 'selected' クラスを削除
+                    roomButtons.forEach(btn => btn.classList.remove('selected'));
+                    // クリックされたボタンに 'selected' クラスを追加
+                    button.classList.add('selected');
+                    // selectedRoom 変数を更新
+                    selectedRoom = button.dataset.room;
+                    showStatusMessage(`${selectedRoom}が選択されました。`);
+                });
+            });
+
+            entryButton.addEventListener('click', () => sendActionToGAS('入室'));
+            exitButton.addEventListener('click', () => sendActionToGAS('退室'));
+
+            // Enterキーで入室をトリガー
+            userNameInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    sendActionToGAS('入室');
+                }
+            });
+
+            // 初期表示と定期的な更新
+            fetchRoomStatus(); // ページ読み込み時にGASから最新の状況を取得
+            setInterval(fetchRoomStatus, 5000); // 5秒ごとにGASから最新の状況を取得して表示を更新
+        });
+    </script>
+</body>
+</html>
