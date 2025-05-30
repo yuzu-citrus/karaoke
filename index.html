@@ -164,7 +164,7 @@
             width: 100%;
             max-width: 600px; /* Wider for room list */
             text-align: left;
-            margin-bottom: 2rem; /* お知らせとの間隔 */
+            margin-bottom: 2rem; /* フッターとの間隔 */
         }
         .room-status-container h2 {
             font-size: 0.95rem; /* 部屋番号ボタンと同じサイズに */
@@ -228,6 +228,77 @@
             color: #4a5568; /* 文字色も調整 */
             margin-bottom: 1rem; /* 見出し下の余白も調整 */
         }
+        .announcement-input-group { /* テキストエリアとボタンのグループ */
+            display: flex;
+            flex-direction: column; /* 縦に並べる */
+            gap: 0.75rem; /* 隙間 */
+            align-items: flex-end; /* 右寄せ */
+        }
+        .announcement-input-group textarea {
+            margin-bottom: 0; /* flexboxでgapを使うため、textareaのbottom-marginを0に */
+            font-size: 0.95rem; /* お知らせ入力欄のフォントサイズを名前ラベルと同じに */
+        }
+        .save-announcement-button {
+            background-color: #e5e7eb; /* 薄いグレー */
+            color: #374151; /* 濃いグレーの文字色 */
+            padding: 0.5rem 1rem; /* パディングを小さく */
+            font-size: 0.9rem; /* フォントサイズも小さく */
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: auto; /* 幅を自動調整 */
+            min-width: 60px; /* 最小幅を設定 */
+        }
+        .save-announcement-button:hover {
+            background-color: #d1d5db; /* ホバーで少し濃いグレー */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 流れるお知らせ表示エリアのスタイル */
+        .marquee-container {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: #f7fafc;
+            overflow: hidden; /* これが重要 */
+            margin-top: 1rem; /* テキストエリアとの間隔 */
+            font-size: 0.95rem; /* 流れるテキストのフォントサイズを名前ラベルと同じに */
+            color: #374151;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); /* 軽く内側に影 */
+            margin-bottom: 2rem; /* 下の要素との間隔 */
+            position: relative; /* marquee-contentのabsolute基準 */
+            height: 1.5em; /* 1行分の高さを確保 */
+            line-height: 1.5em; /* テキストを垂直中央に */
+        }
+        .marquee-content {
+            display: inline-block; /* これが重要 */
+            white-space: nowrap; /* これが重要: テキストを強制的に1行に */
+            position: absolute; /* 親要素を基準に配置 */
+            top: 0;
+            left: 100%; /* 最初は右端から始める */
+            animation: marquee 15s linear infinite; /* アニメーション定義 */
+            /* テキストの長さに応じてアニメーション速度を調整するため、JSでanimation-durationを上書き */
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); } /* padding-left: 100% と組み合わせて右端から */
+            100% { transform: translateX(-100%); } /* テキストの幅分だけ左へ移動 */
+        }
+
+        /* テキストが短い場合の調整 */
+        .marquee-content.short-text {
+            animation: none; /* アニメーションを無効化 */
+            transform: translateX(0); /* 位置をリセット */
+            padding-left: 0; /* 左寄せに戻す */
+            white-space: normal; /* 折り返しを許可 */
+            position: static; /* 位置指定を解除 */
+            text-align: center; /* 中央寄せに */
+        }
+
+
         /* Footer style */
         .footer {
             margin-top: 3rem; /* 上部のコンテンツとの間隔 */
@@ -237,6 +308,29 @@
             text-align: center;
             font-size: 0.75rem; /* 小さい文字 */
             color: #6b7280; /* 薄いグレーの文字色 */
+        }
+        .gemini-message {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #f0fdf4; /* Very light green for AI messages */
+            color: #166534; /* Dark green text */
+            border-left: 4px solid #4ade80; /* Accent border */
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            text-align: left;
+            word-wrap: break-word;
+            min-height: 50px; /* Ensure it has some height even when empty */
+            display: flex; /* For centering loading spinner */
+            align-items: center;
+            justify-content: center;
+        }
+        /* Loading spinner for Gemini message */
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         @media (max-width: 640px) {
@@ -273,11 +367,23 @@
     <div id="gasUrlWarning" class="gas-url-warning hidden">
         <strong>エラー: GASウェブアプリのURLが設定されていません！</strong><br>
         このシステムを動作させるには、Google Apps Script (GAS) をデプロイし、発行されたURLをこのHTMLコードの `GAS_WEB_APP_URL` に貼り付ける必要があります。<br>
+        **特に、URLの末尾が `/exec` であり、「アクセスできるユーザー」が「全員」に設定されているか確認してください。**<br>
         詳細は、チャットで「GASのURL設定方法」と質問してください。
     </div>
 
     <div class="container">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">カラオケ入退室</h1>
+
+        <div class="announcement-container">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">お知らせ</h2>
+            <div class="announcement-input-group">
+                <textarea id="announcementInput" placeholder="ここにお知らせを入力してください..." class="focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                <button id="saveAnnouncementButton" class="save-announcement-button">保存</button>
+            </div>
+            <div class="marquee-container">
+                <span id="announcementDisplayText" class="marquee-text"></span>
+            </div>
+        </div>
 
         <div class="mb-4">
             <label for="userName" class="block text-gray-700 text-sm font-medium mb-2 text-left">名前:</label>
@@ -304,12 +410,6 @@
         <div id="statusMessage" class="status-message hidden"></div>
     </div>
 
-    <div class="announcement-container">
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">お知らせ</h2>
-        <textarea id="announcementInput" placeholder="ここにお知らせを入力してください..." class="focus:ring-indigo-500 focus:border-indigo-500"></textarea>
-        <button id="saveAnnouncementButton" class="save-announcement-button"></button>
-    </div>
-
     <div class="room-status-container">
         <h2 class="text-2xl font-bold text-gray-800 mb-4">現在の状況</h2>
         <div id="roomStatusList" class="room-list">
@@ -323,9 +423,9 @@
 
     <script>
         // ★★★ 非常に重要: ここにデプロイしたGASウェブアプリのURLを正確に貼り付けてください ★★★
-        // 例: 'https://script.google.com/macros/s/AKfycxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/exec'
+        // 例: 'https://script.google.com/macros/s/AKfycbxdODu4wkkEYuPxM26ybsty5WgLeBaucXtP8-qk1VgE0ObL0Qbvd6DtLg_UsDv_ywKMQw/exec'
         // 注意: シングルクォーテーション(')の中にURLを貼り付け、余分なスペースや文字が入らないようにしてください。
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzs4NmurDb54EKQiiDGkPif7Z9Rwswm3Q0zuRLY1aVOem2tP_EoFRBC7CR-tdADZETYrQ/exec'; 
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwMR9fhCeRve-XwJb3NT18squwT5UyxAX-h3mZHYrNPfh6hVg4yWXFlyRT1EyiLyoMa0g/exec'; 
 
         // 部屋の数 (GASスクリプトと合わせる)
         // 「その他」部屋が追加されたため、ROOM_COUNTを6に更新
@@ -345,11 +445,12 @@
             const announcementInput = document.getElementById('announcementInput'); // お知らせ入力欄の要素を取得
             const saveAnnouncementButton = document.getElementById('saveAnnouncementButton'); // お知らせ保存ボタンの要素を取得
             const gasUrlWarningDiv = document.getElementById('gasUrlWarning'); // GAS URL警告要素を取得
+            const geminiMessageDiv = document.createElement('div'); // 新しいGeminiメッセージ表示要素
+            geminiMessageDiv.id = 'geminiMessage';
+            geminiMessageDiv.className = 'gemini-message hidden';
+            statusMessageDiv.parentNode.insertBefore(geminiMessageDiv, statusMessageDiv.nextSibling); // statusMessageDivの直後に挿入
+            const announcementDisplayText = document.getElementById('announcementDisplayText'); // 流れるお知らせ表示要素
 
-            // Googleフォーム連携用のID (GAS経由での連携に置き換わるため、直接は使用しませんが参照として残します)
-            const NAME_ENTRY_ID = 'YOUR_NAME_ENTRY_ID';
-            const STATUS_ENTRY_ID = 'YOUR_STATUS_ENTRY_ID';
-            const ROOM_ENTRY_ID = 'YOUR_ROOM_ENTRY_ID';
 
             /**
              * ステータスメッセージを表示する関数
@@ -364,6 +465,58 @@
                     statusMessageDiv.classList.add('bg-red-100', 'text-red-800', 'border-red-400');
                 } else {
                     statusMessageDiv.classList.add('bg-blue-100', 'text-blue-800', 'border-blue-400');
+                }
+            }
+
+            /**
+             * Gemini APIを使ってメッセージを生成し表示する関数
+             * @param {string} userName - ユーザー名
+             * @param {string} roomNumber - 部屋番号
+             * @param {string} status - '入室' または '退室'
+             */
+            async function generateGeminiMessage(userName, roomNumber, status) {
+                geminiMessageDiv.classList.remove('hidden');
+                geminiMessageDiv.innerHTML = `
+                    <div class="flex items-center justify-center text-gray-600">
+                        <svg class="spinner h-5 w-5 text-gray-500 mr-3" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        ✨AIがメッセージを生成中✨
+                    </div>
+                `;
+
+                let prompt = "";
+                if (status === '入室') {
+                    prompt = `ユーザー名が${userName}で、${roomNumber}に入室しました。今日のカラオケが素晴らしいものになるような短い励ましのメッセージを生成してください。`;
+                } else if (status === '退室') {
+                    prompt = `ユーザー名が${userName}で、${roomNumber}から退室しました。今日のカラオケの労いメッセージと、SNS投稿用のハッシュタグを3つ提案してください。`;
+                }
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas環境で自動的に提供されます
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = response.json();
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        geminiMessageDiv.innerHTML = `<p class="text-gray-700">✨AIからのメッセージ✨<br>${text}</p>`;
+                    } else {
+                        geminiMessageDiv.innerHTML = '<p class="text-red-500">AIメッセージの生成に失敗しました。</p>';
+                    }
+                } catch (error) {
+                    console.error("Gemini API Error:", error);
+                    geminiMessageDiv.innerHTML = '<p class="text-red-500">AIメッセージの生成中にエラーが発生しました。</p>';
                 }
             }
 
@@ -452,6 +605,18 @@
              */
             function updateCustomAnnouncementDisplay(announcementText) {
                 announcementInput.value = announcementText; // テキストエリアに表示
+                // 流れるテキストの更新
+                announcementDisplayText.textContent = announcementText;
+                // テキストの長さに応じてアニメーションを適用・解除
+                if (announcementDisplayText.scrollWidth > announcementDisplayText.clientWidth) {
+                    announcementDisplayText.classList.remove('short-text');
+                    // アニメーション速度をテキストの長さに応じて調整 (例: 1文字あたり0.1秒)
+                    const animationDuration = announcementDisplayText.scrollWidth / 100; // 100px/s の速度
+                    announcementDisplayText.style.animationDuration = `${animationDuration}s`;
+                } else {
+                    announcementDisplayText.classList.add('short-text'); // アニメーションを無効化
+                    announcementDisplayText.style.animationDuration = '0s'; // アニメーション時間を0に
+                }
             }
 
 
@@ -468,6 +633,7 @@
                 }
 
                 try {
+                    console.log('Fetching from GAS URL:', GAS_WEB_APP_URL);
                     const response = await fetch(GAS_WEB_APP_URL, {
                         method: 'GET',
                         mode: 'cors' // CORSを許可
@@ -477,14 +643,12 @@
                     }
                     const data = await response.json();
                     if (data.error) {
-                        // エラー表示を削除したため、ここではコンソールログのみ
                         console.error(`GASからのエラー: ${data.error}`);
                     } else {
                         updateRoomStatusDisplay(data.roomOccupancy); // 部屋状況を更新
                         updateCustomAnnouncementDisplay(data.customAnnouncement); // カスタムお知らせを更新
                     }
                 } catch (error) {
-                    // エラー表示を削除したため、ここではコンソールログのみ
                     console.error('データ取得エラー:', error);
                 }
             }
@@ -504,8 +668,10 @@
                 }
 
                 showStatusMessage(`処理中...`); // 汎用的なメッセージ
+                geminiMessageDiv.classList.add('hidden'); // 新しい操作でAIメッセージを隠す
 
                 try {
+                    console.log('Sending to GAS URL:', GAS_WEB_APP_URL, 'with payload:', payloadData);
                     const response = await fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
                         mode: 'cors',
@@ -527,16 +693,16 @@
                         showStatusMessage(result.message);
                         if (actionType === 'entryExit') {
                             userNameInput.value = ''; // 入力フィールドをクリア
+                            // 入室または退室が成功した場合にGeminiメッセージを生成
+                            generateGeminiMessage(payloadData.name, payloadData.room, payloadData.status);
                         }
                         updateRoomStatusDisplay(result.roomOccupancy); // 部屋状況を更新
                         updateCustomAnnouncementDisplay(result.customAnnouncement); // カスタムお知らせを更新
                     } else {
-                        // エラー表示を削除したため、ここではコンソールログのみ
                         console.error(`GASからのエラー: ${result.message}`);
                     }
 
                 } catch (error) {
-                    // エラー表示を削除したため、ここではコンソールログのみ
                     console.error('GASへの送信エラー:', error);
                 }
             }
@@ -551,6 +717,7 @@
                     // selectedRoom 変数を更新
                     selectedRoom = button.dataset.room;
                     showStatusMessage(`${selectedRoom}が選択されました。`);
+                    geminiMessageDiv.classList.add('hidden'); // 部屋選択でAIメッセージを隠す
                 });
             });
 
