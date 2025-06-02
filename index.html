@@ -323,7 +323,7 @@
         // ★★★ 非常に重要: ここにデプロイしたGASウェブアプリのURLを正確に貼り付けてください ★★★
         // 例: 'https://script.google.com/macros/s/AKfycbwMR9fhCeRve-XwJb3NT18squwT5UyxAX-h3mZHYrNPfh6hVg4yWXFlyRT1EyiLyoMa0g/exec'
         // 注意: シングルクォーテーション(')の中にURLを貼り付け、余分なスペースや文字が入らないようにしてください。
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzlwwUZqUREymfVI_UqKMcfcaqEX4kR-G9SLcE0tK-hSDHnsxGimaKeLd4VoJ7MZiwM/exec'; 
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwMR9fhCeRve-XwJb3NT18squwT5UyxAX-h3mZHYrNPfh6hVg4yWXFlyRT1EyiLyoMa0g/exec'; 
 
         // 固定の部屋名リスト（表示順の基準にもなる）
         const FIXED_ROOM_NAMES_ORDER = ["部屋A", "部屋B", "部屋C", "部屋D", "部屋E"];
@@ -677,7 +677,7 @@
                 }
             });
 
-            // 初期表示はGASから取得
+            // 初期表示
             fetchStatusAndAnnouncement(); 
             // 滞在時間をリアルタイムで更新するために定期的にGASからデータを取得
             setInterval(fetchStatusAndAnnouncement, 5000); // 5秒ごとに更新
