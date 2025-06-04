@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>カラオケ入退室</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -17,7 +18,18 @@
             padding: 1rem;
             box-sizing: border-box;
         }
-        /* .gas-url-warning はHTMLから削除されました */
+        .gas-url-warning {
+            background-color: #fee2e2; /* Light red background */
+            color: #991b1b; /* Dark red text */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #ef4444; /* Red border */
+            margin-bottom: 1.5rem;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            font-weight: 600;
+        }
         .container {
             background-color: #ffffff;
             padding: 2.5rem;
@@ -135,7 +147,7 @@
             box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
         }
         .status-message {
-            margin-top: 2rem;
+            margin-top: 1rem; /* 上の要素との間隔を調整 */
             padding: 1rem;
             background-color: #e0f2fe; /* Light blue for messages */
             color: #0c4a6e; /* Darker blue text */
@@ -225,8 +237,80 @@
         .highlighted-row {
             background-color: #fffacd; /* 薄い黄色 */
         }
+
+        /* 参加者リストセクションのスタイル */
+        .participant-list-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: left;
+            margin-bottom: 2rem; /* フッターとの間隔 */
+        }
+        .participant-list-container h2 {
+            font-size: 0.95rem; /* 部屋番号ボタンと同じサイズに */
+            font-weight: 600; /* 太字は維持 */
+            color: #4a5568; /* 文字色も調整 */
+            margin-bottom: 1rem; /* 見出し下の余白も調整 */
+        }
+        #participantInput { /* 参加者入力用textarea */
+            font-size: 0.95rem; /* 名前入力欄と同じサイズに */
+            margin-bottom: 0.75rem; /* ボタンとの間隔調整 */
+            min-height: 100px; /* 少し高さを確保 */
+        }
+        .save-participant-list-button {
+            background-color: #6366f1; /* Indigo */
+            color: #ffffff;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: auto;
+            align-self: flex-end; /* 右寄せ */
+            margin-bottom: 1rem; /* 表示エリアとの間隔 */
+        }
+        .save-participant-list-button:hover {
+            background-color: #4f46e5;
+            transform: translateY(-1px);
+        }
+        .participant-display-area {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            background-color: #f7fafc;
+            min-height: 50px;
+            font-size: 0.95rem;
+            color: #374151;
+            white-space: pre-wrap; /* 改行を保持 */
+            word-wrap: break-word; /* 長い単語を改行 */
+            display: grid; /* グリッド表示 */
+            grid-template-columns: repeat(2, 1fr); /* 2列 */
+            gap: 0.5rem 1rem; /* 行と列の隙間 */
+            padding: 1rem;
+            /* 10行分の高さを制限 */
+            max-height: calc(0.95rem * 1.5 * 10 + 2rem); /* font-size * line-height * rows + padding */
+            overflow-y: auto; /* 縦スクロール */
+        }
+        .participant-display-area .participant-name-item {
+            cursor: pointer;
+            color: #3b82f6; /* 青色でリンクのように見せる */
+            text-decoration: underline;
+            transition: color 0.1s ease-in-out;
+            white-space: nowrap; /* 名前が改行されないように */
+            overflow: hidden; /* はみ出した部分は隠す */
+            text-overflow: ellipsis; /* はみ出した場合は...で表示 */
+        }
+        .participant-display-area .participant-name-item:hover {
+            color: #2563eb;
+        }
+
+
         @media (max-width: 640px) {
-            .container, .room-status-container {
+            .container, .room-status-container, .participant-list-container {
                 padding: 1.5rem;
             }
             .action-button {
@@ -269,10 +353,6 @@
                 <button class="room-button" data-room="部屋D">D号室</button>
                 <button class="room-button" data-room="部屋E">E号室</button>
             </div>
-            <div class="custom-room-direct-input-group">
-                <label for="directCustomRoomNameInput" class="block text-gray-700 text-sm font-medium mb-2 text-left">〇号室？:</label>
-                <input type="text" id="directCustomRoomNameInput" placeholder="部屋名を入力してください" class="focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
         </div>
 
         <div class="action-button-group">
@@ -290,14 +370,24 @@
         </div>
     </div>
 
+    <div class="participant-list-container">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">参加者リスト</h2>
+        <textarea id="participantInput" placeholder="参加者の名前を一行ずつ入力してください..." class="focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+        <button id="saveParticipantListButton" class="save-participant-list-button">リストを保存</button>
+        <div id="participantDisplayArea" class="participant-display-area mt-4">
+            <!-- 保存された参加者名がここに表示されます -->
+        </div>
+    </div>
+
     <footer class="footer">
         © 株式会社 柚子ポテト
     </footer>
 
     <script>
-        // ★★★ このアプリはGoogleスプレッドシートとは連携せず、ブラウザのローカルストレージにデータを保存します ★★★
-        // データを永続化したい場合は、以前のGAS連携版のコードを使用し、正しいGASウェブアプリのURLを設定してください。
-        const GAS_WEB_APP_URL = 'DISABLED_FOR_CLIENT_SIDE_ONLY'; // GAS連携が無効であることを明示
+        // ★★★ 非常に重要: ここにデプロイしたGASウェブアプリのURLを正確に貼り付けてください ★★★
+        // 例: 'https://script.google.com/macros/s/AKfycbzFgjnKQ0k8AFr5GjREWBZUpgkJ_lo3m7-LE9MkK2CPKpbdpp9OMgWv_ZjL4t1z9jgH/exec'
+        // 注意: シングルクォーテーション(')の中にURLを貼り付け、余分なスペースや文字が入らないようにしてください。
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzGN0TBkmKZDl7sA0b8ZUccqmQyPejSXh57XpoB2JKreIXjY6wPtzubrc8G-9VJ4Lk5/exec'; 
 
         // 固定の部屋名リスト（表示順の基準にもなる）
         const FIXED_ROOM_NAMES_ORDER = ["部屋A", "部屋B", "部屋C", "部屋D", "部屋E"];
@@ -314,31 +404,6 @@
         let clientRoomOccupancy = {}; // ブラウザのメモリ内で部屋の占有状況を管理
         let currentHighlightedRow = null; // 現在ハイライトされている行を追跡
 
-        // 初期化処理: ローカルストレージからデータを読み込む
-        const storedOccupancy = localStorage.getItem('karaokeRoomOccupancy');
-        if (storedOccupancy) {
-            try {
-                clientRoomOccupancy = JSON.parse(storedOccupancy);
-                // 念のため、初期化されたclientRoomOccupancyに固定部屋がなければ追加
-                FIXED_ROOM_NAMES_ORDER.forEach(roomName => {
-                    if (!clientRoomOccupancy[roomName]) {
-                        clientRoomOccupancy[roomName] = [];
-                    }
-                });
-            } catch (e) {
-                console.error("Failed to parse localStorage data:", e);
-                // パース失敗時は初期状態に戻す
-                FIXED_ROOM_NAMES_ORDER.forEach(roomName => {
-                    clientRoomOccupancy[roomName] = [];
-                });
-            }
-        } else {
-            // localStorageにデータがなければ初期化
-            FIXED_ROOM_NAMES_ORDER.forEach(roomName => {
-                clientRoomOccupancy[roomName] = [];
-            });
-        }
-        
         // カスタムソート関数
         function sortRoomNames(a, b) {
             const isFixedA = FIXED_ROOM_NAMES_ORDER.includes(a);
@@ -384,10 +449,11 @@
             const exitButton = document.getElementById('exitButton');
             const statusMessageDiv = document.getElementById('statusMessage');
             const roomStatusListDiv = document.getElementById('roomStatusList');
-            // gasUrlWarningDiv はHTMLから削除済みなので、ここでは取得しません
             
-            // カスタム部屋名入力関連要素
-            const directCustomRoomNameInput = document.getElementById('directCustomRoomNameInput');
+            // 参加者リスト関連要素
+            const participantInput = document.getElementById('participantInput');
+            const saveParticipantListButton = document.getElementById('saveParticipantListButton');
+            const participantDisplayArea = document.getElementById('participantDisplayArea');
 
 
             /**
@@ -404,6 +470,10 @@
                 } else {
                     statusMessageDiv.classList.add('bg-blue-100', 'text-blue-800', 'border-blue-400');
                 }
+                // メッセージを5秒後に非表示にする
+                setTimeout(() => {
+                    statusMessageDiv.classList.add('hidden');
+                }, 5000);
             }
 
             /**
@@ -498,13 +568,10 @@
                             currentHighlightedRow = clickedRow; // ハイライトされた行を記憶
                         }
 
-                        const clickedName = event.target.dataset.name;
-                        const clickedRoomInternal = event.target.dataset.room; // 内部の部屋名を取得
+                        const clickedName = nameElement.dataset.name;
+                        const clickedRoomInternal = nameElement.dataset.room; // 内部の部屋名を取得
                         
                         userNameInput.value = clickedName; // 名前入力欄にセット
-                        
-                        // カスタム部屋名入力欄をクリア
-                        directCustomRoomNameInput.value = ''; 
                         
                         // 部屋ボタンの選択状態を更新
                         roomButtons.forEach(btn => btn.classList.remove('selected'));
@@ -515,7 +582,6 @@
                             showStatusMessage(`${clickedName}さんの${DISPLAY_ROOM_NAMES_MAP[clickedRoomInternal] || clickedRoomInternal}からの退室準備ができました。`);
                         } else {
                             // カスタム部屋名の場合、入力欄に部屋名を表示し、ボタンの選択を解除
-                            directCustomRoomNameInput.value = clickedRoomInternal;
                             selectedRoom = clickedRoomInternal; // selectedRoomも更新
                             showStatusMessage(`${clickedName}さんの${DISPLAY_ROOM_NAMES_MAP[clickedRoomInternal] || clickedRoomInternal}からの退室準備ができました。`);
                         }
@@ -535,7 +601,7 @@
                     return;
                 }
                 if (!roomNameInternal) {
-                    showStatusMessage('部屋番号を選択するか、部屋名を入力してください。', true);
+                    showStatusMessage('部屋番号を選択してください。', true);
                     return;
                 }
 
@@ -589,7 +655,6 @@
 
                 showStatusMessage(message, isError);
                 userNameInput.value = ''; // 名前入力フィールドをクリア
-                directCustomRoomNameInput.value = ''; // カスタム部屋名入力フィールドをクリア
                 roomButtons.forEach(btn => btn.classList.remove('selected')); // 部屋ボタンの選択を解除
                 selectedRoom = null; // 選択された部屋をリセット
                 
@@ -613,25 +678,9 @@
                     // クリックされたボタンに 'selected' クラスを追加
                     button.classList.add('selected');
                     
-                    // 固定部屋ボタンが押されたら、カスタム入力欄をクリア
-                    directCustomRoomNameInput.value = '';
-                    
                     selectedRoom = button.dataset.room; // selectedRoomを更新 (内部名)
                     showStatusMessage(`${DISPLAY_ROOM_NAMES_MAP[selectedRoom] || selectedRoom}が選択されました。`);
                 });
-            });
-
-            // カスタム部屋名入力欄の入力イベントリスナー
-            directCustomRoomNameInput.addEventListener('input', () => {
-                // カスタム入力欄に何か入力されたら、全ての部屋ボタンの選択を解除
-                roomButtons.forEach(btn => btn.classList.remove('selected'));
-                // selectedRoom をカスタム入力欄の値に設定
-                selectedRoom = directCustomRoomNameInput.value.trim();
-                if (selectedRoom) {
-                    showStatusMessage(`部屋名「${selectedRoom}」が入力されました。`);
-                } else {
-                    showStatusMessage(`部屋名を入力してください。`, true);
-                }
             });
 
             // 入室ボタンのクリックイベント
