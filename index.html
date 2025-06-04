@@ -56,24 +56,7 @@
             border-color: #6366f1; /* Focus color */
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Soft focus ring */
         }
-        /* textareaは元のmin-heightを維持 */
-        textarea {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.2s ease-in-out;
-            background-color: #ffffff;
-            resize: vertical;
-            min-height: 80px;
-        }
-        textarea:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-        }
+        /* textareaスタイルは使用されないため削除 */
         .room-buttons-group {
             display: grid; /* Use grid for responsive layout */
             grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Auto-fit columns */
@@ -377,6 +360,7 @@
             const exitButton = document.getElementById('exitButton');
             const statusMessageDiv = document.getElementById('statusMessage');
             const roomStatusListDiv = document.getElementById('roomStatusList');
+            const gasUrlWarningDiv = document.getElementById('gasUrlWarning'); // GAS URL警告要素を取得
             
             /**
              * ステータスメッセージを表示する関数
@@ -522,13 +506,11 @@
             async function fetchStatusAndAnnouncement() {
                 // GAS_WEB_APP_URLが正しく設定されているかを確認
                 if (GAS_WEB_APP_URL === 'YOUR_GAS_WEB_APP_URL_HERE' || !GAS_WEB_APP_URL.startsWith('https://script.google.com/macros/s/')) {
-                    statusMessageDiv.textContent = 'エラー: GASのURLが設定されていません。管理者にご連絡ください。';
-                    statusMessageDiv.classList.add('bg-red-100', 'text-red-800', 'border-red-400', 'block');
-                    roomStatusListDiv.innerHTML = '<p class="text-red-500 text-center">エラー: GASのURL設定を確認してください。</p>';
+                    gasUrlWarningDiv.classList.remove('hidden'); // 警告を表示
+                    roomStatusListDiv.innerHTML = '<p class="text-red-500 text-center">エラー: GASのURLが設定されていません。管理者にご連絡ください。</p>';
                     return; 
                 } else {
-                    statusMessageDiv.classList.remove('bg-red-100', 'text-red-800', 'border-red-400'); // エラー色を解除
-                    statusMessageDiv.classList.add('hidden'); // 通常は非表示
+                    gasUrlWarningDiv.classList.add('hidden'); // URLが設定されていれば警告を非表示
                 }
 
                 try {
