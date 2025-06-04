@@ -222,6 +222,10 @@
         }
 
         @media (max-width: 640px) {
+            .gas-url-warning {
+                font-size: 0.85rem;
+                padding: 0.75rem;
+            }
             .container, .room-status-container {
                 padding: 1.5rem;
             }
@@ -298,7 +302,6 @@
         // 例: 'https://script.google.com/macros/s/AKfycbzFgjnKQ0k8AFr5GjREWBZUpgkJ_lo3m7-LE9MkK2CPKpbdpp9OMgWv_ZjL4t1z9jgH/exec'
         // 注意: シングルクォーテーション(')の中にURLを貼り付け、余分なスペースや文字が入らないようにしてください。
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwoqEYZz7o0TT0be0CSMJ-hkYPZE57Ojx39KNKwi46Ai_EVsyMzGerpkwrhpCFIDWef/exec'; 
-
         // 固定の部屋名リスト（表示順の基準にもなる）
         const FIXED_ROOM_NAMES_ORDER = ["部屋A", "部屋B", "部屋C", "部屋D", "部屋E"];
         // 表示用の部屋名マッピング
@@ -507,7 +510,9 @@
                 // GAS_WEB_APP_URLが正しく設定されているかを確認
                 if (GAS_WEB_APP_URL === 'YOUR_GAS_WEB_APP_URL_HERE' || !GAS_WEB_APP_URL.startsWith('https://script.google.com/macros/s/')) {
                     gasUrlWarningDiv.classList.remove('hidden'); // 警告を表示
-                    roomStatusListDiv.innerHTML = '<p class="text-red-500 text-center">エラー: GASのURLが設定されていません。管理者にご連絡ください。</p>';
+                    statusMessageDiv.textContent = 'エラー: GASのURLが設定されていません。管理者にご連絡ください。';
+                    statusMessageDiv.classList.add('bg-red-100', 'text-red-800', 'border-red-400', 'block');
+                    roomStatusListDiv.innerHTML = '<p class="text-red-500 text-center">エラー: GASのURL設定を確認してください。</p>';
                     return; 
                 } else {
                     gasUrlWarningDiv.classList.add('hidden'); // URLが設定されていれば警告を非表示
