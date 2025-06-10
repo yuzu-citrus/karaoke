@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -266,6 +266,13 @@
     </style>
 </head>
 <body>
+    <div id="gasUrlWarning" class="gas-url-warning hidden">
+        <strong>エラー: GASウェブアプリのURLが設定されていません！</strong><br>
+        このシステムを動作させるには、Google Apps Script (GAS) をデプロイし、発行されたURLをこのHTMLコードの `GAS_WEB_APP_URL` に貼り付ける必要があります。<br>
+        **特に、URLの末尾が `/exec` であり、「アクセスできるユーザー」が「全員」に設定されているか確認してください。**<br>
+        詳細は、チャットで「GASのURL設定方法」と質問してください。
+    </div>
+
     <div class="container">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">カラオケ入退室</h1>
 
@@ -313,6 +320,11 @@
     </footer>
 
     <script>
+        // ★★★ 非常に重要: ここにデプロイしたGASウェブアプリのURLを正確に貼り付けてください ★★★
+        // 例: 'https://script.google.com/macros/s/AKfycbxPUn0so66PfmoglIlhocNtoLDUdG0hBSV2mpRJl_DcvUsAP5ykvqllO26oLSvQrww/exec'
+        // 注意: シングルクォーテーション(')の中にURLを貼り付け、余分なスペースや文字が入らないようにしてください。
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxPUn0so66PfmoglIlhocNtoLDUdG0hBSV2mpRJl_DcvUsAP5ykvqllO26oLSvQrww/exec'; 
+
         // 固定の部屋名リスト（表示順の基準にもなる）
         const FIXED_ROOM_NAMES_ORDER = ["部屋A", "部屋B", "部屋C", "部屋D", "部屋E"];
         // 表示用の部屋名マッピング
@@ -352,34 +364,10 @@
 
 
         let selectedRoom = null; // 現在選択されている部屋を保持する変数
-        let clientRoomOccupancy = {}; // ブラウザのメモリ内で部屋の占有状況を管理
+        // clientRoomOccupancyはGASから取得します
+        let clientRoomOccupancy = {}; 
         let currentHighlightedRow = null; // 現在ハイライトされている行を追跡
 
-        // 初期化処理: ローカルストレージから部屋の占有状況データを読み込む
-        const storedOccupancy = localStorage.getItem('karaokeRoomOccupancy');
-        if (storedOccupancy) {
-            try {
-                clientRoomOccupancy = JSON.parse(storedOccupancy);
-                // 念のため、初期化されたclientRoomOccupancyに固定部屋がなければ追加
-                FIXED_ROOM_NAMES_ORDER.forEach(roomName => {
-                    if (!clientRoomOccupancy[roomName]) {
-                        clientRoomOccupancy[roomName] = [];
-                    }
-                });
-            } catch (e) {
-                console.error("Failed to parse localStorage data for occupancy:", e);
-                // パース失敗時は初期状態に戻す
-                FIXED_ROOM_NAMES_ORDER.forEach(roomName => {
-                    clientRoomOccupancy[roomName] = [];
-                });
-            }
-        } else {
-            // localStorageにデータがなければ初期化
-            FIXED_ROOM_NAMES_ORDER.forEach(roomName => {
-                clientRoomOccupancy[roomName] = [];
-            });
-        }
-        
         // カスタムソート関数
         function sortRoomNames(a, b) {
             const isFixedA = FIXED_ROOM_NAMES_ORDER.includes(a);
@@ -425,8 +413,8 @@
             const exitButton = document.getElementById('exitButton');
             const statusMessageDiv = document.getElementById('statusMessage');
             const roomStatusListDiv = document.getElementById('roomStatusList');
+            const gasUrlWarningDiv = document.getElementById('gasUrlWarning'); // GAS URL警告要素を取得
             const participantGridDiv = document.getElementById('participantGrid'); // 参加者リスト表示エリア
-
 
             /**
              * ステータスメッセージを表示する関数
@@ -466,11 +454,15 @@
             }
 
             /**
-             * 部屋の状況表示を更新する関数 (ローカルメモリからデータを取得)
+             * 部屋の状況表示を更新する関数 (GASからデータを取得して表示)
+             * @param {object} currentRoomOccupancy - GASから取得した現在の部屋状況データ
              */
-            function updateRoomStatusDisplay() {
+            function updateRoomStatusDisplay(currentRoomOccupancy) {
                 let html = '';
                 let allRoomsEmpty = true;
+
+                // clientRoomOccupancyをGASから取得したデータで更新
+                clientRoomOccupancy = currentRoomOccupancy;
 
                 // clientRoomOccupancyのキーをカスタムソートして使用
                 const roomNamesInOrder = Object.keys(clientRoomOccupancy).sort(sortRoomNames);
@@ -562,84 +554,91 @@
             }
 
             /**
-             * 入退室アクションをローカルメモリで処理する関数
-             * @param {string} status - '入室' または '退室'
-             * @param {string} userName - ユーザー名
-             * @param {string} roomNameInternal - 部屋番号 (内部表記)
+             * GASウェブアプリから部屋の状況を取得して表示を更新する関数
+             * これがデータを永続化し、ウェブサイトを閉じても状況が消えないようにします。
              */
-            function processEntryExitLocal(status, userName, roomNameInternal) {
-                if (!userName) {
-                    showStatusMessage('名前を入力してください。', true);
-                    return;
-                }
-                if (!roomNameInternal) {
-                    showStatusMessage('部屋番号を選択してください。', true);
-                    return;
+            async function fetchStatusAndAnnouncement() {
+                // GAS_WEB_APP_URLが正しく設定されているかを確認
+                if (GAS_WEB_APP_URL === 'YOUR_GAS_WEB_APP_URL_HERE' || !GAS_WEB_APP_URL.startsWith('https://script.google.com/macros/s/')) {
+                    gasUrlWarningDiv.classList.remove('hidden'); // 警告を表示
+                    statusMessageDiv.textContent = 'エラー: GASのURLが設定されていません。管理者にご連絡ください。';
+                    statusMessageDiv.classList.add('bg-red-100', 'text-red-800', 'border-red-400', 'block');
+                    roomStatusListDiv.innerHTML = '<p class="text-red-500 text-center">エラー: GASのURL設定を確認してください。</p>';
+                    return; 
+                } else {
+                    gasUrlWarningDiv.classList.add('hidden'); // URLが設定されていれば警告を非表示
                 }
 
-                let message = '';
-                let isError = false;
-
-                // ユーザーが現在どこかの部屋に入室しているかを探す
-                let userCurrentlyInAnyRoom = false;
-                let prevRoomInternal = null;
-                Object.keys(clientRoomOccupancy).forEach(key => {
-                    if (clientRoomOccupancy[key].some(o => o.name === userName)) {
-                        userCurrentlyInAnyRoom = true;
-                        prevRoomInternal = key;
+                try {
+                    console.log('Fetching from GAS URL:', GAS_WEB_APP_URL);
+                    const response = await fetch(GAS_WEB_APP_URL, {
+                        method: 'GET',
+                        mode: 'cors' // CORSを許可
+                    });
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                });
-
-                // ユーザーが現在ターゲットの部屋に入室しているか
-                const userInTargetRoom = clientRoomOccupancy[roomNameInternal] && clientRoomOccupancy[roomNameInternal].some(o => o.name === userName);
-
-                if (status === '入室') {
-                    if (userInTargetRoom) {
-                        message = `${userName}さんは既に${DISPLAY_ROOM_NAMES_MAP[roomNameInternal] || roomNameInternal}に入室しています。`;
-                        isError = true;
-                    } else if (userCurrentlyInAnyRoom) {
-                        // 別の部屋に移動する場合（以前の部屋から自動退室）
-                        clientRoomOccupancy[prevRoomInternal] = clientRoomOccupancy[prevRoomInternal].filter(o => o.name !== userName);
-                        
-                        // 新しい部屋を追加（カスタム部屋の場合に備えて）
-                        if (!clientRoomOccupancy[roomNameInternal]) {
-                            clientRoomOccupancy[roomNameInternal] = []; // 配列として初期化
-                        }
-                        clientRoomOccupancy[roomNameInternal].push({ name: userName, entryTime: new Date().getTime() });
-                        message = `${userName}さんが${DISPLAY_ROOM_NAMES_MAP[prevRoomInternal] || prevRoomInternal}から退室し、${DISPLAY_ROOM_NAMES_MAP[roomNameInternal] || roomNameInternal}に入室しました。`;
+                    const data = await response.json();
+                    if (data.error) {
+                        console.error(`GASからのエラー: ${data.error}`);
+                        roomStatusListDiv.innerHTML = `<p class="text-red-500 text-center">エラー: ${data.error}</p>`;
                     } else {
-                        // 新しい入室
-                        if (!clientRoomOccupancy[roomNameInternal]) { // 新しいカスタム部屋の場合
-                            clientRoomOccupancy[roomNameInternal] = []; // 配列として初期化
+                        updateRoomStatusDisplay(data.roomOccupancy); // 部屋状況を更新
+                    }
+                } catch (error) {
+                    console.error('データ取得エラー:', error);
+                    roomStatusListDiv.innerHTML = `<p class="text-red-500 text-center">データ取得に失敗しました。${error.message}</p>`;
+                }
+            }
+
+            /**
+             * アクションをGASウェブアプリに送信する関数
+             * @param {string} actionType - 'entryExit' (入退室)
+             * @param {object} payloadData - 送信するデータ (name, room, status)
+             */
+            async function sendActionToGAS(actionType, payloadData) {
+                // GAS_WEB_APP_URLが正しく設定されているかを確認
+                if (GAS_WEB_APP_URL === 'YOUR_GAS_WEB_APP_URL_HERE' || !GAS_WEB_APP_URL.startsWith('https://script.google.com/macros/s/')) {
+                    showStatusMessage('エラー: GASのURLが設定されていません。管理者にご連絡ください。', true);
+                    return; 
+                }
+
+                showStatusMessage(`処理中...`); // 汎用的なメッセージ
+
+                try {
+                    console.log('Sending to GAS URL:', GAS_WEB_APP_URL, 'with payload:', payloadData);
+                    const response = await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: actionType, // アクションタイプを送信
+                            ...payloadData // その他のデータを展開
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    if (result.success) {
+                        showStatusMessage(result.message);
+                        if (actionType === 'entryExit') {
+                            userNameInput.value = ''; // 入力フィールドをクリア
                         }
-                        clientRoomOccupancy[roomNameInternal].push({ name: userName, entryTime: new Date().getTime() });
-                        message = `${userName}さんが${DISPLAY_ROOM_NAMES_MAP[roomNameInternal] || roomNameInternal}に入室しました。`;
-                    }
-                } else if (status === '退室') {
-                    if (userInTargetRoom) {
-                        clientRoomOccupancy[roomNameInternal] = clientRoomOccupancy[roomNameInternal].filter(o => o.name !== userName);
-                        message = `${userName}さんが${DISPLAY_ROOM_NAMES_MAP[roomNameInternal] || roomNameInternal}から退室しました。`;
+                        updateRoomStatusDisplay(result.roomOccupancy); // 部屋状況を更新
                     } else {
-                        message = `${userName}さんは${DISPLAY_ROOM_NAMES_MAP[roomNameInternal] || roomNameInternal}に入室していません。`;
-                        isError = true;
+                        console.error(`GASからのエラー: ${result.message}`);
+                        showStatusMessage(`エラー: ${result.message}`, true); // エラーメッセージを表示
                     }
+
+                } catch (error) {
+                    console.error('GASへの送信エラー:', error);
+                    showStatusMessage(`記録に失敗しました。${error.message}`, true); // エラーメッセージを表示
                 }
-
-                showStatusMessage(message, isError);
-                userNameInput.value = ''; // 名前入力フィールドをクリア
-                roomButtons.forEach(btn => btn.classList.remove('selected')); // 部屋ボタンの選択を解除
-                selectedRoom = null; // 選択された部屋をリセット
-                
-                // ハイライトを解除
-                if (currentHighlightedRow) {
-                    currentHighlightedRow.classList.remove('highlighted-row');
-                    currentHighlightedRow = null;
-                }
-
-                // ローカルストレージに保存
-                localStorage.setItem('karaokeRoomOccupancy', JSON.stringify(clientRoomOccupancy));
-
-                updateRoomStatusDisplay(); // 表示を更新
             }
 
             // 部屋ボタンのクリックイベントリスナーを設定
@@ -657,12 +656,20 @@
 
             // 入室ボタンのクリックイベント
             entryButton.addEventListener('click', () => {
-                processEntryExitLocal('入室', userNameInput.value.trim(), selectedRoom);
+                sendActionToGAS('entryExit', {
+                    name: userNameInput.value.trim(),
+                    room: selectedRoom,
+                    status: '入室'
+                });
             });
 
             // 退室ボタンのクリックイベント
             exitButton.addEventListener('click', () => {
-                processEntryExitLocal('退室', userNameInput.value.trim(), selectedRoom);
+                sendActionToGAS('entryExit', {
+                    name: userNameInput.value.trim(),
+                    room: selectedRoom,
+                    status: '退室'
+                });
             });
 
 
@@ -670,14 +677,18 @@
             userNameInput.addEventListener('keypress', (event) => {
                 if (event.key === 'Enter') {
                     event.preventDefault();
-                    processEntryExitLocal('入室', userNameInput.value.trim(), selectedRoom);
+                    sendActionToGAS('entryExit', {
+                        name: userNameInput.value.trim(),
+                        room: selectedRoom,
+                        status: '入室'
+                    });
                 }
             });
 
-            // 初期表示
-            updateRoomStatusDisplay();
-            // 滞在時間をリアルタイムで更新するために1秒ごとに表示を更新
-            setInterval(updateRoomStatusDisplay, 1000); // 1秒ごとに更新
+            // 初回表示はGASから取得
+            fetchStatusAndAnnouncement(); 
+            // 滞在時間をリアルタイムで更新するために定期的にGASからデータを取得
+            setInterval(fetchStatusAndAnnouncement, 5000); // 5秒ごとに更新
 
             /**
              * 参加者リストの表示を生成する関数
