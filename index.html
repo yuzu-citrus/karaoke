@@ -36,54 +36,51 @@
             border-radius: 1rem; /* More rounded corners */
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Softer shadow */
             width: 100%;
-            max-width: 480px; /* Slightly wider for better mobile input */
+            max-width: 600px; /* 幅を統一 */
             text-align: center;
             margin-bottom: 2rem; /* Space below the input form */
         }
         input[type="text"] {
             width: 100%;
-            padding: 0.5rem 1rem; /* 上下のパディングを小さくしました */
+            padding: 0.5rem 1rem;
             margin-bottom: 1.5rem;
-            border: 1px solid #cbd5e1; /* Lighter border */
-            border-radius: 0.5rem; /* Rounded input fields */
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
             font-size: 1rem;
             outline: none;
             transition: border-color 0.2s ease-in-out;
-            background-color: #ffffff; /* Ensure select background is white */
-            resize: vertical; /* 縦方向のみリサイズ可能に */
+            background-color: #ffffff;
+            resize: vertical;
         }
         input[type="text"]:focus {
-            border-color: #6366f1; /* Focus color */
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Soft focus ring */
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
         }
-        /* textareaスタイルは使用されないため削除 */
         .room-buttons-group {
-            display: grid; /* Use grid for responsive layout */
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Auto-fit columns */
-            gap: 0.75rem; /* Space between buttons */
-            margin-bottom: 2.5rem; /* 間隔を広げました */
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 2.5rem;
         }
         .room-button {
             padding: 0.75rem 0.5rem;
             font-size: 0.95rem;
             font-weight: 500;
-            /* 部屋のボタンのデフォルト色を黄緑系に変更 */
-            color: #ffffff; /* 白文字 */
-            background-color: #84cc16; /* 黄緑 */
-            border: 1px solid #65a30d; /* 少し濃い黄緑の枠線 */
+            color: #ffffff;
+            background-color: #84cc16; /* 緑 */
+            border: 1px solid #65a30d;
             border-radius: 0.5rem;
             cursor: pointer;
             transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         .room-button:hover {
-            background-color: #65a30d; /* ホバーで少し濃い黄緑 */
+            background-color: #65a30d;
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         .room-button.selected {
-            /* 部屋のボタンの選択色を濃い黄緑に設定 */
-            background-color: #4d7c0f; /* 濃い黄緑 */
+            background-color: #4d7c0f; /* 濃い緑 */
             color: #ffffff;
             border-color: #3f6212;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -93,7 +90,6 @@
             background-color: #3f6212;
         }
 
-
         .action-button-group {
             display: flex;
             gap: 1rem;
@@ -101,8 +97,8 @@
         }
         .action-button {
             flex: 1;
-            padding: 1.5rem 1.5rem; /* パディングをさらに増やす */
-            font-size: 2.5rem; /* 文字サイズをさらに大きく */
+            padding: 1.5rem 1.5rem;
+            font-size: 2.5rem;
             font-weight: 600;
             color: #ffffff;
             border: none;
@@ -112,25 +108,23 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .entry-button {
-            /* 入室ボタンの色をより濃い青に変更 */
             background-color: #1d4ed8; /* 濃い青 */
         }
         .entry-button:hover {
-            background-color: #1e40af; /* ホバーでさらに濃い青 */
+            background-color: #1e40af;
             transform: translateY(-2px);
             box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
         }
         .exit-button {
-            /* 退室ボタンの色をより濃い赤に変更 */
             background-color: #b91c1c; /* 濃い赤 */
         }
         .exit-button:hover {
-            background-color: #991b1b; /* ホバーでさらに濃い赤 */
+            background-color: #991b1b;
             transform: translateY(-2px);
             box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
         }
         .status-message {
-            margin-top: 1rem; /* 上の要素との間隔を調整 */
+            margin-top: 1rem;
             padding: 1rem;
             background-color: #e0f2fe; /* Light blue for messages */
             color: #0c4a6e; /* Darker blue text */
@@ -138,7 +132,7 @@
             border-radius: 0.5rem;
             font-size: 0.95rem;
             text-align: left;
-            word-wrap: break-word; /* Ensure long messages wrap */
+            word-wrap: break-word;
         }
         /* Room Status Display */
         .room-status-container {
@@ -149,19 +143,19 @@
             width: 100%;
             max-width: 600px; /* Wider for room list */
             text-align: left;
-            margin-bottom: 2rem; /* フッターとの間隔 */
+            margin-bottom: 2rem;
         }
         .room-status-container h2 {
-            font-size: 0.95rem; /* 部屋番号ボタンと同じサイズに */
-            font-weight: 600; /* 太字は維持 */
-            color: #4a5568; /* 文字色も調整 */
-            margin-bottom: 1rem; /* 見出し下の余白も調整 */
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 1rem;
         }
         .room-list {
-            margin-top: 0.5rem; /* 見出し下の余白を調整したため、ここも調整 */
+            margin-top: 0.5rem;
         }
         .room-item {
-            background-color: #f7fafc; /* Light gray for room background */
+            background-color: #f7fafc;
             border: 1px solid #e2e8f0;
             border-radius: 0.75rem;
             padding: 1rem 1.5rem;
@@ -205,13 +199,13 @@
             width: 100%;
             max-width: 600px;
             text-align: left;
-            margin-bottom: 2rem; /* フッターとの間隔 */
+            margin-bottom: 2rem;
         }
         .participant-list-container h2 {
-            font-size: 0.95rem; /* 部屋番号ボタンと同じサイズに */
-            font-weight: 600; /* 太字は維持 */
-            color: #4a5568; /* 文字色も調整 */
-            margin-bottom: 1rem; /* 見出し下の余白も調整 */
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 1rem;
         }
         .participant-grid {
             display: grid;
@@ -221,8 +215,7 @@
             border: 1px solid #e2e8f0;
             border-radius: 0.5rem;
             background-color: #f7fafc;
-            /* 15行 x 行の高さ（font-size * line-height）を基準に高さを設定 */
-            max-height: calc(0.95rem * 1.5 * 15 + 1.5rem); /* 約15行 + 上下のパディング */
+            max-height: calc(0.95rem * 1.5 * 15 + 1.5rem); /* 約15行分の高さに制限 */
             overflow-y: auto; /* 縦スクロールを有効に */
         }
         .participant-grid-item {
@@ -239,40 +232,65 @@
         }
 
 
+        /* Footer style */
+        .footer {
+            margin-top: 3rem;
+            padding: 1rem;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+        /* クリック可能な名前のスタイル（現在の状況テーブル用） */
+        .clickable-name {
+            cursor: pointer;
+            color: #3b82f6;
+            text-decoration: underline;
+            transition: color 0.1s ease-in-out;
+        }
+        .clickable-name:hover {
+            color: #2563eb;
+        }
+        /* ハイライトされた行のスタイル */
+        .highlighted-row {
+            background-color: #fffacd; /* 薄い黄色 */
+        }
+
         @media (max-width: 640px) {
             .container, .room-status-container, .participant-list-container {
                 padding: 1.5rem;
             }
             .action-button {
-                font-size: 1.8rem; /* スマホでは少し小さく調整 */
-                padding: 1.25rem 1.25rem; /* スマホでのパディング調整 */
+                font-size: 1.8rem;
+                padding: 1.25rem 1.25rem;
             }
             .action-button-group {
-                flex-direction: column; /* Stack buttons on small screens */
+                flex-direction: column;
                 gap: 0.75rem;
             }
             .room-button {
-                font-size: 0.85rem; /* Smaller font for room buttons on small screens */
+                font-size: 0.85rem;
                 padding: 0.6rem 0.4rem;
             }
             .occupant-table th, .occupant-table td {
-                padding: 0.5rem 0.3rem; /* Smaller padding for tables on small screens */
+                padding: 0.5rem 0.3rem;
                 font-size: 0.8rem;
             }
+            .participant-grid {
+                gap: 0.3rem 0.5rem;
+                max-height: calc(0.85rem * 1.5 * 15 + 1.5rem);
+            }
+            .participant-grid-item {
+                font-size: 0.85rem;
+            }
             .footer {
-                font-size: 0.65rem; /* スマホでのフッターの文字サイズ調整 */
+                font-size: 0.65rem;
             }
         }
     </style>
 </head>
 <body>
-    <div id="gasUrlWarning" class="gas-url-warning hidden">
-        <strong>エラー: GASウェブアプリのURLが設定されていません！</strong><br>
-        このシステムを動作させるには、Google Apps Script (GAS) をデプロイし、発行されたURLをこのHTMLコードの `GAS_WEB_APP_URL` に貼り付ける必要があります。<br>
-        **特に、URLの末尾が `/exec` であり、「アクセスできるユーザー」が「全員」に設定されているか確認してください。**<br>
-        詳細は、チャットで「GASのURL設定方法」と質問してください。
-    </div>
-
     <div class="container">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">カラオケ入退室</h1>
 
@@ -372,7 +390,7 @@
 
 
         let selectedRoom = null; // 現在選択されている部屋を保持する変数
-        let clientRoomOccupancy = {}; // GASから取得した現在の部屋状況を保持
+        let clientRoomOccupancy = {}; // ブラウザのメモリ内で部屋の占有状況を管理
         let currentHighlightedRow = null; // 現在ハイライトされている行を追跡
 
         // カスタムソート関数
@@ -464,107 +482,7 @@
              * 部屋の状況表示を更新する関数 (GASからデータを取得して表示)
              * @param {object} currentRoomOccupancy - GASから取得した現在の部屋状況データ
              */
-            function updateRoomStatusDisplay(currentRoomOccupancy) {
-                let html = '';
-                let allRoomsEmpty = true;
-
-                // clientRoomOccupancyをGASから取得したデータで更新
-                clientRoomOccupancy = currentRoomOccupancy;
-
-                // clientRoomOccupancyのキーをカスタムソートして使用
-                const roomNamesInOrder = Object.keys(clientRoomOccupancy).sort(sortRoomNames);
-
-                roomNamesInOrder.forEach(roomNameInternal => { // roomNameInternal は "部屋A", "部屋B", "101号室" など
-                    const occupants = clientRoomOccupancy[roomNameInternal] || []; 
-                    
-                    // 表示用の部屋名を取得
-                    const displayRoomName = DISPLAY_ROOM_NAMES_MAP[roomNameInternal] || roomNameInternal;
-
-                    html += `
-                        <div class="room-item">
-                            <h3 class="text-lg font-semibold text-gray-700 mb-2">${displayRoomName}</h3>
-                    `;
-                    if (occupants.length > 0) {
-                        allRoomsEmpty = false;
-                        html += `
-                            <table class="occupant-table">
-                                <thead>
-                                    <tr>
-                                        <th>入室</th>
-                                        <th>氏名</th>
-                                        <th>滞在</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                        `;
-                        occupants.forEach(occupant => {
-                            const entryTime = new Date(occupant.entryTime); 
-                            const now = new Date();
-                            const stayDuration = now.getTime() - entryTime.getTime();
-                            html += `
-                                    <tr>
-                                        <td>${entryTime.toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'})}</td>
-                                        <td class="clickable-name" data-name="${occupant.name}" data-room="${roomNameInternal}">${occupant.name}</td>
-                                        <td>${formatDuration(stayDuration)}</td>
-                                    </tr>
-                            `;
-                        });
-                        html += `
-                                </tbody>
-                            </table>
-                        `;
-                    } else {
-                        html += `<p class="no-occupants">誰も入室していません。</p>`;
-                    }
-                    html += `</div>`;
-                });
-
-                if (allRoomsEmpty) {
-                    html = '<p class="text-gray-500 text-center">現在、全ての部屋に誰も入室していません。</p>';
-                }
-
-                roomStatusListDiv.innerHTML = html;
-
-                // クリック可能な名前の要素にイベントリスナーを設定
-                document.querySelectorAll('.clickable-name').forEach(nameElement => {
-                    nameElement.addEventListener('click', (event) => {
-                        // 既存のハイライトを解除
-                        if (currentHighlightedRow) {
-                            currentHighlightedRow.classList.remove('highlighted-row');
-                        }
-                        // 新しい行をハイライト
-                        const clickedRow = event.target.closest('tr');
-                        if (clickedRow) {
-                            clickedRow.classList.add('highlighted-row');
-                            currentHighlightedRow = clickedRow; // ハイライトされた行を記憶
-                        }
-
-                        const clickedName = nameElement.dataset.name;
-                        const clickedRoomInternal = nameElement.dataset.room; // 内部の部屋名を取得
-                        
-                        userNameInput.value = clickedName; // 名前入力欄にセット
-                        
-                        // 部屋ボタンの選択状態を更新
-                        roomButtons.forEach(btn => btn.classList.remove('selected'));
-                        const correspondingRoomButton = document.querySelector(`.room-button[data-room="${clickedRoomInternal}"]`);
-                        if (correspondingRoomButton) {
-                            correspondingRoomButton.classList.add('selected');
-                            selectedRoom = clickedRoomInternal; // selectedRoomも更新
-                            showStatusMessage(`${clickedName}さんの${DISPLAY_ROOM_NAMES_MAP[clickedRoomInternal] || clickedRoomInternal}からの退室準備ができました。`);
-                        } else {
-                            // カスタム部屋名の場合、入力欄に部屋名を表示し、ボタンの選択を解除
-                            selectedRoom = clickedRoomInternal; // selectedRoomも更新
-                            showStatusMessage(`${clickedName}さんの${DISPLAY_ROOM_NAMES_MAP[clickedRoomInternal] || clickedRoomInternal}からの退室準備ができました。`);
-                        }
-                    });
-                });
-            }
-
-            /**
-             * GASウェブアプリから部屋の状況を取得して表示を更新する関数
-             * これがデータを永続化し、ウェブサイトを閉じても状況が消えないようにします。
-             */
-            async function fetchStatusAndAnnouncement() {
+            async function updateRoomStatusDisplayFromGAS() {
                 // GAS_WEB_APP_URLが正しく設定されているかを確認
                 if (GAS_WEB_APP_URL === 'YOUR_GAS_WEB_APP_URL_HERE' || !GAS_WEB_APP_URL.startsWith('https://script.google.com/macros/s/')) {
                     gasUrlWarningDiv.classList.remove('hidden'); // 警告を表示
@@ -590,7 +508,96 @@
                         console.error(`GASからのエラー: ${data.error}`);
                         roomStatusListDiv.innerHTML = `<p class="text-red-500 text-center">エラー: ${data.error}</p>`;
                     } else {
-                        updateRoomStatusDisplay(data.roomOccupancy); // 部屋状況を更新
+                        // clientRoomOccupancyをGASから取得したデータで更新
+                        clientRoomOccupancy = data.roomOccupancy; 
+                        let html = '';
+                        let allRoomsEmpty = true;
+
+                        // clientRoomOccupancyのキーをカスタムソートして使用
+                        const roomNamesInOrder = Object.keys(clientRoomOccupancy).sort(sortRoomNames);
+
+                        roomNamesInOrder.forEach(roomNameInternal => {
+                            const occupants = clientRoomOccupancy[roomNameInternal] || []; 
+                            const displayRoomName = DISPLAY_ROOM_NAMES_MAP[roomNameInternal] || roomNameInternal;
+
+                            html += `
+                                <div class="room-item">
+                                    <h3 class="text-lg font-semibold text-gray-700 mb-2">${displayRoomName}</h3>
+                            `;
+                            if (occupants.length > 0) {
+                                allRoomsEmpty = false;
+                                html += `
+                                    <table class="occupant-table">
+                                        <thead>
+                                            <tr>
+                                                <th>入室</th>
+                                                <th>氏名</th>
+                                                <th>滞在</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                `;
+                                occupants.forEach(occupant => {
+                                    const entryTime = new Date(occupant.entryTime); 
+                                    const now = new Date();
+                                    const stayDuration = now.getTime() - entryTime.getTime();
+                                    html += `
+                                            <tr>
+                                                <td>${entryTime.toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'})}</td>
+                                                <td class="clickable-name" data-name="${occupant.name}" data-room="${roomNameInternal}">${occupant.name}</td>
+                                                <td>${formatDuration(stayDuration)}</td>
+                                            </tr>
+                                    `;
+                                });
+                                html += `
+                                        </tbody>
+                                    </table>
+                                `;
+                            } else {
+                                html += `<p class="no-occupants">誰も入室していません。</p>`;
+                            }
+                            html += `</div>`;
+                        });
+
+                        if (allRoomsEmpty) {
+                            html = '<p class="text-gray-500 text-center">現在、全ての部屋に誰も入室していません。</p>';
+                        }
+
+                        roomStatusListDiv.innerHTML = html;
+
+                        // クリック可能な名前の要素にイベントリスナーを設定
+                        document.querySelectorAll('.clickable-name').forEach(nameElement => {
+                            nameElement.addEventListener('click', (event) => {
+                                // 既存のハイライトを解除
+                                if (currentHighlightedRow) {
+                                    currentHighlightedRow.classList.remove('highlighted-row');
+                                }
+                                // 新しい行をハイライト
+                                const clickedRow = event.target.closest('tr');
+                                if (clickedRow) {
+                                    clickedRow.classList.add('highlighted-row');
+                                    currentHighlightedRow = clickedRow; // ハイライトされた行を記憶
+                                }
+
+                                const clickedName = nameElement.dataset.name;
+                                const clickedRoomInternal = nameElement.dataset.room; // 内部の部屋名を取得
+                                
+                                userNameInput.value = clickedName; // 名前入力欄にセット
+                                
+                                // 部屋ボタンの選択状態を更新
+                                roomButtons.forEach(btn => btn.classList.remove('selected'));
+                                const correspondingRoomButton = document.querySelector(`.room-button[data-room="${clickedRoomInternal}"]`);
+                                if (correspondingRoomButton) {
+                                    correspondingRoomButton.classList.add('selected');
+                                    selectedRoom = clickedRoomInternal; // selectedRoomも更新
+                                    showStatusMessage(`${clickedName}さんの${DISPLAY_ROOM_NAMES_MAP[clickedRoomInternal] || clickedRoomInternal}からの退室準備ができました。`);
+                                } else {
+                                    // カスタム部屋名の場合、入力欄に部屋名を表示し、ボタンの選択を解除
+                                    selectedRoom = clickedRoomInternal; // selectedRoomも更新
+                                    showStatusMessage(`${clickedName}さんの${DISPLAY_ROOM_NAMES_MAP[clickedRoomInternal] || clickedRoomInternal}からの退室準備ができました。`);
+                                }
+                            });
+                        });
                     }
                 } catch (error) {
                     console.error('データ取得エラー:', error);
@@ -613,12 +620,12 @@
                 showStatusMessage(`処理中...`); // 汎用的なメッセージ
 
                 try {
-                    console.log('Sending to GAS URL:', GAS_WEB_APP_URL, 'with payload:', payloadData);
+                    console.log('Sending to GAS URL:', GAS_WEB_APP_URL);
                     const response = await fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
                         mode: 'cors',
                         headers: {
-                            'Content-Type': 'text/json',
+                            'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
                             action: actionType, // アクションタイプを送信
@@ -636,7 +643,7 @@
                         if (actionType === 'entryExit') {
                             userNameInput.value = ''; // 入力フィールドをクリア
                         }
-                        updateRoomStatusDisplay(result.roomOccupancy); // 部屋状況を更新
+                        updateRoomStatusDisplayFromGAS(); // 部屋状況を更新
                     } else {
                         console.error(`GASからのエラー: ${result.message}`);
                         showStatusMessage(`エラー: ${result.message}`, true); // エラーメッセージを表示
@@ -693,9 +700,9 @@
             });
 
             // 初回表示はGASから取得
-            fetchStatusAndAnnouncement(); 
+            updateRoomStatusDisplayFromGAS(); 
             // 滞在時間をリアルタイムで更新するために定期的にGASからデータを取得
-            setInterval(fetchStatusAndAnnouncement, 5000); // 5秒ごとに更新
+            setInterval(updateRoomStatusDisplayFromGAS, 5000); // 5秒ごとに更新
 
             /**
              * 参加者リストの表示を生成する関数
