@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -265,13 +266,6 @@
     </style>
 </head>
 <body>
-    <div id="gasUrlWarning" class="gas-url-warning hidden">
-        <strong>エラー: GASウェブアプリのURLが設定されていません！</strong><br>
-        このシステムを動作させるには、Google Apps Script (GAS) をデプロイし、発行されたURLをこのHTMLコードの `GAS_WEB_APP_URL` に貼り付ける必要があります。<br>
-        **特に、URLの末尾が `/exec` であり、「アクセスできるユーザー」が「全員」に設定されているか確認してください。**<br>
-        詳細は、チャットで「GASのURL設定方法」と質問してください。
-    </div>
-
     <div class="container">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">カラオケ入退室</h1>
 
@@ -363,8 +357,7 @@
 
 
         let selectedRoom = null; // 現在選択されている部屋を保持する変数
-        // clientRoomOccupancyはGASから取得します
-        let clientRoomOccupancy = {}; 
+        let clientRoomOccupancy = {}; // ブラウザのメモリ内で部屋の占有状況を管理
         let currentHighlightedRow = null; // 現在ハイライトされている行を追跡
 
         // カスタムソート関数
@@ -456,107 +449,7 @@
              * 部屋の状況表示を更新する関数 (GASからデータを取得して表示)
              * @param {object} currentRoomOccupancy - GASから取得した現在の部屋状況データ
              */
-            function updateRoomStatusDisplay(currentRoomOccupancy) {
-                let html = '';
-                let allRoomsEmpty = true;
-
-                // clientRoomOccupancyをGASから取得したデータで更新
-                clientRoomOccupancy = currentRoomOccupancy;
-
-                // clientRoomOccupancyのキーをカスタムソートして使用
-                const roomNamesInOrder = Object.keys(clientRoomOccupancy).sort(sortRoomNames);
-
-                roomNamesInOrder.forEach(roomNameInternal => { // roomNameInternal は "部屋A", "部屋B", "101号室" など
-                    const occupants = clientRoomOccupancy[roomNameInternal] || []; 
-                    
-                    // 表示用の部屋名を取得
-                    const displayRoomName = DISPLAY_ROOM_NAMES_MAP[roomNameInternal] || roomNameInternal;
-
-                    html += `
-                        <div class="room-item">
-                            <h3 class="text-lg font-semibold text-gray-700 mb-2">${displayRoomName}</h3>
-                    `;
-                    if (occupants.length > 0) {
-                        allRoomsEmpty = false;
-                        html += `
-                            <table class="occupant-table">
-                                <thead>
-                                    <tr>
-                                        <th>入室</th>
-                                        <th>氏名</th>
-                                        <th>滞在</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                        `;
-                        occupants.forEach(occupant => {
-                            const entryTime = new Date(occupant.entryTime); 
-                            const now = new Date();
-                            const stayDuration = now.getTime() - entryTime.getTime();
-                            html += `
-                                    <tr>
-                                        <td>${entryTime.toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'})}</td>
-                                        <td class="clickable-name" data-name="${occupant.name}" data-room="${roomNameInternal}">${occupant.name}</td>
-                                        <td>${formatDuration(stayDuration)}</td>
-                                    </tr>
-                            `;
-                        });
-                        html += `
-                                </tbody>
-                            </table>
-                        `;
-                    } else {
-                        html += `<p class="no-occupants">誰も入室していません。</p>`;
-                    }
-                    html += `</div>`;
-                });
-
-                if (allRoomsEmpty) {
-                    html = '<p class="text-gray-500 text-center">現在、全ての部屋に誰も入室していません。</p>';
-                }
-
-                roomStatusListDiv.innerHTML = html;
-
-                // クリック可能な名前の要素にイベントリスナーを設定
-                document.querySelectorAll('.clickable-name').forEach(nameElement => {
-                    nameElement.addEventListener('click', (event) => {
-                        // 既存のハイライトを解除
-                        if (currentHighlightedRow) {
-                            currentHighlightedRow.classList.remove('highlighted-row');
-                        }
-                        // 新しい行をハイライト
-                        const clickedRow = event.target.closest('tr');
-                        if (clickedRow) {
-                            clickedRow.classList.add('highlighted-row');
-                            currentHighlightedRow = clickedRow; // ハイライトされた行を記憶
-                        }
-
-                        const clickedName = nameElement.dataset.name;
-                        const clickedRoomInternal = nameElement.dataset.room; // 内部の部屋名を取得
-                        
-                        userNameInput.value = clickedName; // 名前入力欄にセット
-                        
-                        // 部屋ボタンの選択状態を更新
-                        roomButtons.forEach(btn => btn.classList.remove('selected'));
-                        const correspondingRoomButton = document.querySelector(`.room-button[data-room="${clickedRoomInternal}"]`);
-                        if (correspondingRoomButton) {
-                            correspondingRoomButton.classList.add('selected');
-                            selectedRoom = clickedRoomInternal; // selectedRoomも更新
-                            showStatusMessage(`${clickedName}さんの${DISPLAY_ROOM_NAMES_MAP[clickedRoomInternal] || clickedRoomInternal}からの退室準備ができました。`);
-                        } else {
-                            // カスタム部屋名の場合、入力欄に部屋名を表示し、ボタンの選択を解除
-                            selectedRoom = clickedRoomInternal; // selectedRoomも更新
-                            showStatusMessage(`${clickedName}さんの${DISPLAY_ROOM_NAMES_MAP[clickedRoomInternal] || clickedRoomInternal}からの退室準備ができました。`);
-                        }
-                    });
-                });
-            }
-
-            /**
-             * GASウェブアプリから部屋の状況を取得して表示を更新する関数
-             * これがデータを永続化し、ウェブサイトを閉じても状況が消えないようにします。
-             */
-            async function fetchStatusAndAnnouncement() {
+            async function updateRoomStatusDisplayFromGAS() {
                 // GAS_WEB_APP_URLが正しく設定されているかを確認
                 if (GAS_WEB_APP_URL === 'YOUR_GAS_WEB_APP_URL_HERE' || !GAS_WEB_APP_URL.startsWith('https://script.google.com/macros/s/')) {
                     gasUrlWarningDiv.classList.remove('hidden'); // 警告を表示
@@ -582,7 +475,96 @@
                         console.error(`GASからのエラー: ${data.error}`);
                         roomStatusListDiv.innerHTML = `<p class="text-red-500 text-center">エラー: ${data.error}</p>`;
                     } else {
-                        updateRoomStatusDisplay(data.roomOccupancy); // 部屋状況を更新
+                        // clientRoomOccupancyをGASから取得したデータで更新
+                        clientRoomOccupancy = data.roomOccupancy; 
+                        let html = '';
+                        let allRoomsEmpty = true;
+
+                        // clientRoomOccupancyのキーをカスタムソートして使用
+                        const roomNamesInOrder = Object.keys(clientRoomOccupancy).sort(sortRoomNames);
+
+                        roomNamesInOrder.forEach(roomNameInternal => {
+                            const occupants = clientRoomOccupancy[roomNameInternal] || []; 
+                            const displayRoomName = DISPLAY_ROOM_NAMES_MAP[roomNameInternal] || roomNameInternal;
+
+                            html += `
+                                <div class="room-item">
+                                    <h3 class="text-lg font-semibold text-gray-700 mb-2">${displayRoomName}</h3>
+                            `;
+                            if (occupants.length > 0) {
+                                allRoomsEmpty = false;
+                                html += `
+                                    <table class="occupant-table">
+                                        <thead>
+                                            <tr>
+                                                <th>入室</th>
+                                                <th>氏名</th>
+                                                <th>滞在</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                `;
+                                occupants.forEach(occupant => {
+                                    const entryTime = new Date(occupant.entryTime); 
+                                    const now = new Date();
+                                    const stayDuration = now.getTime() - entryTime.getTime();
+                                    html += `
+                                            <tr>
+                                                <td>${entryTime.toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'})}</td>
+                                                <td class="clickable-name" data-name="${occupant.name}" data-room="${roomNameInternal}">${occupant.name}</td>
+                                                <td>${formatDuration(stayDuration)}</td>
+                                            </tr>
+                                    `;
+                                });
+                                html += `
+                                        </tbody>
+                                    </table>
+                                `;
+                            } else {
+                                html += `<p class="no-occupants">誰も入室していません。</p>`;
+                            }
+                            html += `</div>`;
+                        });
+
+                        if (allRoomsEmpty) {
+                            html = '<p class="text-gray-500 text-center">現在、全ての部屋に誰も入室していません。</p>';
+                        }
+
+                        roomStatusListDiv.innerHTML = html;
+
+                        // クリック可能な名前の要素にイベントリスナーを設定
+                        document.querySelectorAll('.clickable-name').forEach(nameElement => {
+                            nameElement.addEventListener('click', (event) => {
+                                // 既存のハイライトを解除
+                                if (currentHighlightedRow) {
+                                    currentHighlightedRow.classList.remove('highlighted-row');
+                                }
+                                // 新しい行をハイライト
+                                const clickedRow = event.target.closest('tr');
+                                if (clickedRow) {
+                                    clickedRow.classList.add('highlighted-row');
+                                    currentHighlightedRow = clickedRow; // ハイライトされた行を記憶
+                                }
+
+                                const clickedName = nameElement.dataset.name;
+                                const clickedRoomInternal = nameElement.dataset.room; // 内部の部屋名を取得
+                                
+                                userNameInput.value = clickedName; // 名前入力欄にセット
+                                
+                                // 部屋ボタンの選択状態を更新
+                                roomButtons.forEach(btn => btn.classList.remove('selected'));
+                                const correspondingRoomButton = document.querySelector(`.room-button[data-room="${clickedRoomInternal}"]`);
+                                if (correspondingRoomButton) {
+                                    correspondingRoomButton.classList.add('selected');
+                                    selectedRoom = clickedRoomInternal; // selectedRoomも更新
+                                    showStatusMessage(`${clickedName}さんの${DISPLAY_ROOM_NAMES_MAP[clickedRoomInternal] || clickedRoomInternal}からの退室準備ができました。`);
+                                } else {
+                                    // カスタム部屋名の場合、入力欄に部屋名を表示し、ボタンの選択を解除
+                                    selectedRoom = clickedRoomInternal; // selectedRoomも更新
+                                    showStatusMessage(`${clickedName}さんの${DISPLAY_ROOM_NAMES_MAP[clickedRoomInternal] || clickedRoomInternal}からの退室準備ができました。`);
+                                }
+                            });
+                        });
                     }
                 } catch (error) {
                     console.error('データ取得エラー:', error);
@@ -610,7 +592,7 @@
                         method: 'POST',
                         mode: 'cors',
                         headers: {
-                            'Content-Type': 'text/plain',
+                            'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
                             action: actionType, // アクションタイプを送信
@@ -628,7 +610,7 @@
                         if (actionType === 'entryExit') {
                             userNameInput.value = ''; // 入力フィールドをクリア
                         }
-                        updateRoomStatusDisplay(result.roomOccupancy); // 部屋状況を更新
+                        updateRoomStatusDisplayFromGAS(); // 部屋状況を更新
                     } else {
                         console.error(`GASからのエラー: ${result.message}`);
                         showStatusMessage(`エラー: ${result.message}`, true); // エラーメッセージを表示
@@ -685,9 +667,9 @@
             });
 
             // 初回表示はGASから取得
-            fetchStatusAndAnnouncement(); 
+            updateRoomStatusDisplayFromGAS(); 
             // 滞在時間をリアルタイムで更新するために定期的にGASからデータを取得
-            setInterval(fetchStatusAndAnnouncement, 5000); // 5秒ごとに更新
+            setInterval(updateRoomStatusDisplayFromGAS, 5000); // 5秒ごとに更新
 
             /**
              * 参加者リストの表示を生成する関数
@@ -725,28 +707,36 @@
 
             // 参加者リストデータ (ここに名前とURLを設定します)
             const PARTICIPANT_LIST_WITH_URLS = [
-                { name: "山田太郎", url: "https://example.com/yamada" },
-                { name: "鈴木花子", url: "https://example.com/suzuki" },
-                { name: "田中一郎", url: "https://example.com/tanaka" },
-                { name: "佐藤美咲", url: "https://example.com/sato" },
-                { name: "高橋健太", url: "https://example.com/takahashi" },
-                { name: "伊藤由紀", url: "https://example.com/ito" },
-                { name: "中村大輔", url: "https://example.com/nakamura" },
-                { name: "小林あかり", url: "https://example.com/kobayashi" },
-                { name: "加藤拓也", url: "https://example.com/kato" },
-                { name: "吉田彩", url: "https://example.com/yoshida" },
-                { name: "佐々木淳", url: "https://example.com/sasaki" },
-                { name: "山本恵子", url: "https://example.com/yamamoto" },
-                { name: "渡辺直樹", url: "https://example.com/watanabe" },
-                { name: "斉藤真由美", url: "https://example.com/saito" },
-                { name: "井上浩二", url: "https://example.com/inoue" },
-                { name: "木村涼子", url: "https://example.com/kimura" },
-                { name: "林健一", url: "https://example.com/hayashi" },
-                { name: "池田里奈", url: "https://example.com/ikeda" },
-                { name: "中野和樹", url: "https://example.com/nakano" },
-                { name: "前田裕美", url: "https://example.com/maeda" },
-                // 必要に応じてさらに追加してください (2列15行なので最大30名程度)
-                // { name: "新しい名前", url: "https://example.com/new" },
+                { name: "あお", url: "https://example.com/ao" },
+                { name: "あおい", url: "https://example.com/aoi" },
+                { name: "あやしろ", url: "https://example.com/ayashiro" },
+                { name: "U3", url: "https://example.com/u3" },
+                { name: "うきにょん", url: "https://example.com/ukinyon" },
+                { name: "かえで", url: "https://example.com/kaede" },
+                { name: "gouya.", url: "https://example.com/gouya" },
+                { name: "しきね", url: "https://example.com/shikine" },
+                { name: "しょーと", url: "https://example.com/short" },
+                { name: "スタロウ", url: "https://example.com/sutaro" },
+                { name: "たつき", url: "https://example.com/tatsuki" },
+                { name: "となりのメタボ", url: "https://example.com/metabo" },
+                { name: "なつこ", url: "https://example.com/natsuko" },
+                { name: "鍋", url: "https://example.com/nabe" },
+                { name: "のの", url: "https://example.com/nono" },
+                { name: "PAGE", url: "https://example.com/page" },
+                { name: "ふぁい", url: "https://example.com/fai" },
+                { name: "マイケル", url: "https://example.com/michael" },
+                { name: "まさとも", url: "https://example.com/masatomo" },
+                { name: "まりち", url: "https://example.com/marichi" },
+                { name: "まろ", url: "https://example.com/maro" },
+                { name: "めんくさ", url: "https://example.com/menkusa" },
+                { name: "ゆぅ", url: "https://example.com/yuu" },
+                { name: "ゆうこ", url: "https://example.com/yuko" },
+                { name: "柚子", url: "https://example.com/yuzu" },
+                { name: "ヨウコ", url: "https://example.com/yoko" },
+                { name: "ヨウジ", url: "https://example.com/yoji" },
+                { name: "よこさく", url: "https://example.com/yokosaku" },
+                { name: "凛", url: "https://example.com/rin" },
+                { name: "ろに", url: "https://example.com/roni" },
             ];
 
             // 初期参加者リストの表示
