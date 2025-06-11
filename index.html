@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>カラオケ入退室</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -195,6 +194,12 @@
             color: #718096;
             font-size: 0.9rem;
         }
+        /* Highlighted row style */
+        .highlighted-row {
+            background-color: #bfdbfe; /* Light blue background for highlighted row */
+            outline: 2px solid #60a5fa; /* Blue outline */
+            transition: background-color 0.3s ease, outline 0.3s ease;
+        }
 
         /* 参加者リストセクションのスタイル */
         .participant-list-container {
@@ -266,6 +271,11 @@
     </style>
 </head>
 <body>
+    <div id="gasUrlWarning" class="gas-url-warning hidden">
+        <strong>警告:</strong> GASウェブアプリのURLが設定されていません。
+        <br> `GAS_WEB_APP_URL` 変数を `script.js` (または `script` タグ内) で更新してください。
+    </div>
+
     <div class="container">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">カラオケ入退室</h1>
 
@@ -303,7 +313,6 @@
     <div class="participant-list-container">
         <h2 class="text-2xl font-bold text-gray-800 mb-4">参加者リスト</h2>
         <div id="participantGrid" class="participant-grid">
-            <!-- 参加者名がここに2列で表示されます -->
             <p class="text-gray-500 col-span-2 text-center">参加者リストを読み込み中...</p>
         </div>
     </div>
@@ -316,7 +325,7 @@
         // ★★★ 非常に重要: ここにデプロイしたGASウェブアプリのURLを正確に貼り付けてください ★★★
         // 例: 'https://script.google.com/macros/s/AKfycbxPUn0so66PfmoglIlhocNtoLDUdG0hBSV2mpRJl_DcvUsAP5ykvqllO26oLSvQrww/exec'
         // 注意: シングルクォーテーション(')の中にURLを貼り付け、余分なスペースや文字が入らないようにしてください。
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxPUn0so66PfmoglIlhocNtoLDUdG0hBSV2mpRJl_DcvUsAP5ykvqllO26oLSvQrww/exec'; 
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxGliiXCLuOBNRYB0Nn2kcq4QzvPD1hX2rogkEmA0qyRsQXef8vpt_CFcTCH1KqMTk5/exec';
 
         // 固定の部屋名リスト（表示順の基準にもなる）
         const FIXED_ROOM_NAMES_ORDER = ["部屋A", "部屋B", "部屋C", "部屋D", "部屋E"];
@@ -449,7 +458,7 @@
                 const pad = (num) => num.toString().padStart(2, '0');
 
                 // 滞在時間が0分未満の場合は「00:00」と表示
-                if (hours < 0 || minutes < 0) return "00:00"; 
+                if (hours < 0 || minutes < 0) return "00:00";
                 return `${pad(hours)}:${pad(minutes)}`;
             }
 
@@ -464,7 +473,7 @@
                     statusMessageDiv.textContent = 'エラー: GASのURLが設定されていません。管理者にご連絡ください。';
                     statusMessageDiv.classList.add('bg-red-100', 'text-red-800', 'border-red-400', 'block');
                     roomStatusListDiv.innerHTML = '<p class="text-red-500 text-center">エラー: GASのURL設定を確認してください。</p>';
-                    return; 
+                    return;
                 } else {
                     gasUrlWarningDiv.classList.add('hidden'); // URLが設定されていれば警告を非表示
                 }
@@ -484,7 +493,7 @@
                         roomStatusListDiv.innerHTML = `<p class="text-red-500 text-center">エラー: ${data.error}</p>`;
                     } else {
                         // clientRoomOccupancyをGASから取得したデータで更新
-                        clientRoomOccupancy = data.roomOccupancy; 
+                        clientRoomOccupancy = data.roomOccupancy;
                         let html = '';
                         let allRoomsEmpty = true;
 
@@ -492,7 +501,7 @@
                         const roomNamesInOrder = Object.keys(clientRoomOccupancy).sort(sortRoomNames);
 
                         roomNamesInOrder.forEach(roomNameInternal => {
-                            const occupants = clientRoomOccupancy[roomNameInternal] || []; 
+                            const occupants = clientRoomOccupancy[roomNameInternal] || [];
                             const displayRoomName = DISPLAY_ROOM_NAMES_MAP[roomNameInternal] || roomNameInternal;
 
                             html += `
@@ -513,11 +522,11 @@
                                         <tbody>
                                 `;
                                 occupants.forEach(occupant => {
-                                    const entryTime = new Date(occupant.entryTime); 
+                                    const entryTime = new Date(occupant.entryTime);
                                     const now = new Date();
                                     const stayDuration = now.getTime() - entryTime.getTime();
                                     html += `
-                                            <tr>
+                                            <tr class="occupant-row">
                                                 <td>${entryTime.toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'})}</td>
                                                 <td class="clickable-name" data-name="${occupant.name}" data-room="${roomNameInternal}">${occupant.name}</td>
                                                 <td>${formatDuration(stayDuration)}</td>
@@ -556,9 +565,9 @@
 
                                 const clickedName = nameElement.dataset.name;
                                 const clickedRoomInternal = nameElement.dataset.room; // 内部の部屋名を取得
-                                
+
                                 userNameInput.value = clickedName; // 名前入力欄にセット
-                                
+
                                 // 部屋ボタンの選択状態を更新
                                 roomButtons.forEach(btn => btn.classList.remove('selected'));
                                 const correspondingRoomButton = document.querySelector(`.room-button[data-room="${clickedRoomInternal}"]`);
@@ -589,7 +598,7 @@
                 // GAS_WEB_APP_URLが正しく設定されているかを確認
                 if (GAS_WEB_APP_URL === 'YOUR_GAS_WEB_APP_URL_HERE' || !GAS_WEB_APP_URL.startsWith('https://script.google.com/macros/s/')) {
                     showStatusMessage('エラー: GASのURLが設定されていません。管理者にご連絡ください。', true);
-                    return; 
+                    return;
                 }
 
                 showStatusMessage(`処理中...`); // 汎用的なメッセージ
@@ -637,9 +646,15 @@
                     roomButtons.forEach(btn => btn.classList.remove('selected'));
                     // クリックされたボタンに 'selected' クラスを追加
                     button.classList.add('selected');
-                    
+
                     selectedRoom = button.dataset.room; // selectedRoomを更新 (内部名)
                     showStatusMessage(`${DISPLAY_ROOM_NAMES_MAP[selectedRoom] || selectedRoom}が選択されました。`);
+
+                    // 部屋ボタンがクリックされたら、ハイライトを解除
+                    if (currentHighlightedRow) {
+                        currentHighlightedRow.classList.remove('highlighted-row');
+                        currentHighlightedRow = null;
+                    }
                 });
             });
 
@@ -674,8 +689,17 @@
                 }
             });
 
+            // 名前入力欄が変更されたらハイライトを解除
+            userNameInput.addEventListener('input', () => {
+                if (currentHighlightedRow) {
+                    currentHighlightedRow.classList.remove('highlighted-row');
+                    currentHighlightedRow = null;
+                }
+            });
+
+
             // 初回表示はGASから取得
-            updateRoomStatusDisplayFromGAS(); 
+            updateRoomStatusDisplayFromGAS();
             // 滞在時間をリアルタイムで更新するために定期的にGASからデータを取得
             setInterval(updateRoomStatusDisplayFromGAS, 5000); // 5秒ごとに更新
 
@@ -709,6 +733,12 @@
                         // 部屋ボタンの選択状態をリセット
                         roomButtons.forEach(btn => btn.classList.remove('selected'));
                         selectedRoom = null; // 部屋選択をリセット
+
+                        // 参加者リストがクリックされたら、ハイライトを解除
+                        if (currentHighlightedRow) {
+                            currentHighlightedRow.classList.remove('highlighted-row');
+                            currentHighlightedRow = null;
+                        }
                     });
                 });
             }
@@ -748,7 +778,7 @@
             ];
 
             // 初期参加者リストの表示
-            renderParticipantList(PARTICIPANT_LIST_WITH_URLS); 
+            renderParticipantList(PARTICIPANT_LIST_WITH_URLS);
         });
     </script>
 </body>
