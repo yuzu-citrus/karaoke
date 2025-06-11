@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>カラオケ入退室</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -239,7 +240,7 @@
 
 
         @media (max-width: 640px) {
-            .container, .room-status-container, .participant-list-container {
+            .container, .room-status-container {
                 padding: 1.5rem;
             }
             .action-button {
@@ -302,6 +303,7 @@
     <div class="participant-list-container">
         <h2 class="text-2xl font-bold text-gray-800 mb-4">参加者リスト</h2>
         <div id="participantGrid" class="participant-grid">
+            <!-- 参加者名がここに2列で表示されます -->
             <p class="text-gray-500 col-span-2 text-center">参加者リストを読み込み中...</p>
         </div>
     </div>
@@ -314,7 +316,7 @@
         // ★★★ 非常に重要: ここにデプロイしたGASウェブアプリのURLを正確に貼り付けてください ★★★
         // 例: 'https://script.google.com/macros/s/AKfycbxPUn0so66PfmoglIlhocNtoLDUdG0hBSV2mpRJl_DcvUsAP5ykvqllO26oLSvQrww/exec'
         // 注意: シングルクォーテーション(')の中にURLを貼り付け、余分なスペースや文字が入らないようにしてください。
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxGliiXCLuOBNRYB0Nn2kcq4QzvPD1hX2rogkEmA0qyRsQXef8vpt_CFcTCH1KqMTk5/exec'; 
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxPUn0so66PfmoglIlhocNtoLDUdG0hBSV2mpRJl_DcvUsAP5ykvqllO26oLSvQrww/exec'; 
 
         // 固定の部屋名リスト（表示順の基準にもなる）
         const FIXED_ROOM_NAMES_ORDER = ["部屋A", "部屋B", "部屋C", "部屋D", "部屋E"];
@@ -363,7 +365,7 @@
 
 
         let selectedRoom = null; // 現在選択されている部屋を保持する変数
-        let clientRoomOccupancy = {}; // ブラウザのメモリ内で部屋の占有状況を保持
+        let clientRoomOccupancy = {}; // ブラウザのメモリ内で部屋の占有状況を管理
         let currentHighlightedRow = null; // 現在ハイライトされている行を追跡
 
         // カスタムソート関数
@@ -593,12 +595,12 @@
                 showStatusMessage(`処理中...`); // 汎用的なメッセージ
 
                 try {
-                    console.log('Sending to GAS URL:', GAS_WEB_APP_URL, 'with payload:', payloadData);
+                    console.log('Sending to GAS URL:', GAS_WEB_APP_URL);
                     const response = await fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
                         mode: 'cors',
                         headers: {
-                            'Content-Type': 'text/plain',
+                            'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
                             action: actionType, // アクションタイプを送信
