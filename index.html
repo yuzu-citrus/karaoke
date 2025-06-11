@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>カラオケ入退室</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -36,51 +35,54 @@
             border-radius: 1rem; /* More rounded corners */
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Softer shadow */
             width: 100%;
-            max-width: 600px; /* 幅を統一 */
+            max-width: 480px; /* Slightly wider for better mobile input */
             text-align: center;
             margin-bottom: 2rem; /* Space below the input form */
         }
         input[type="text"] {
             width: 100%;
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 1rem; /* 上下のパディングを小さくしました */
             margin-bottom: 1.5rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 0.5rem;
+            border: 1px solid #cbd5e1; /* Lighter border */
+            border-radius: 0.5rem; /* Rounded input fields */
             font-size: 1rem;
             outline: none;
             transition: border-color 0.2s ease-in-out;
-            background-color: #ffffff;
-            resize: vertical;
+            background-color: #ffffff; /* Ensure select background is white */
+            resize: vertical; /* 縦方向のみリサイズ可能に */
         }
         input[type="text"]:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            border-color: #6366f1; /* Focus color */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Soft focus ring */
         }
+        /* textareaスタイルは使用されないため削除 */
         .room-buttons-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-            gap: 0.75rem;
-            margin-bottom: 2.5rem;
+            display: grid; /* Use grid for responsive layout */
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Auto-fit columns */
+            gap: 0.75rem; /* Space between buttons */
+            margin-bottom: 2.5rem; /* 間隔を広げました */
         }
         .room-button {
             padding: 0.75rem 0.5rem;
             font-size: 0.95rem;
             font-weight: 500;
-            color: #ffffff;
-            background-color: #84cc16; /* 緑 */
-            border: 1px solid #65a30d;
+            /* 部屋のボタンのデフォルト色を黄緑系に変更 */
+            color: #ffffff; /* 白文字 */
+            background-color: #84cc16; /* 黄緑 */
+            border: 1px solid #65a30d; /* 少し濃い黄緑の枠線 */
             border-radius: 0.5rem;
             cursor: pointer;
             transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         .room-button:hover {
-            background-color: #65a30d;
+            background-color: #65a30d; /* ホバーで少し濃い黄緑 */
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         .room-button.selected {
-            background-color: #4d7c0f; /* 濃い緑 */
+            /* 部屋のボタンの選択色を濃い黄緑に設定 */
+            background-color: #4d7c0f; /* 濃い黄緑 */
             color: #ffffff;
             border-color: #3f6212;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -90,6 +92,7 @@
             background-color: #3f6212;
         }
 
+
         .action-button-group {
             display: flex;
             gap: 1rem;
@@ -97,8 +100,8 @@
         }
         .action-button {
             flex: 1;
-            padding: 1.5rem 1.5rem;
-            font-size: 2.5rem;
+            padding: 1.5rem 1.5rem; /* パディングをさらに増やす */
+            font-size: 2.5rem; /* 文字サイズをさらに大きく */
             font-weight: 600;
             color: #ffffff;
             border: none;
@@ -108,23 +111,25 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .entry-button {
+            /* 入室ボタンの色をより濃い青に変更 */
             background-color: #1d4ed8; /* 濃い青 */
         }
         .entry-button:hover {
-            background-color: #1e40af;
+            background-color: #1e40af; /* ホバーでさらに濃い青 */
             transform: translateY(-2px);
             box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
         }
         .exit-button {
+            /* 退室ボタンの色をより濃い赤に変更 */
             background-color: #b91c1c; /* 濃い赤 */
         }
         .exit-button:hover {
-            background-color: #991b1b;
+            background-color: #991b1b; /* ホバーでさらに濃い赤 */
             transform: translateY(-2px);
             box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
         }
         .status-message {
-            margin-top: 1rem;
+            margin-top: 1rem; /* 上の要素との間隔を調整 */
             padding: 1rem;
             background-color: #e0f2fe; /* Light blue for messages */
             color: #0c4a6e; /* Darker blue text */
@@ -132,7 +137,7 @@
             border-radius: 0.5rem;
             font-size: 0.95rem;
             text-align: left;
-            word-wrap: break-word;
+            word-wrap: break-word; /* Ensure long messages wrap */
         }
         /* Room Status Display */
         .room-status-container {
@@ -143,19 +148,19 @@
             width: 100%;
             max-width: 600px; /* Wider for room list */
             text-align: left;
-            margin-bottom: 2rem;
+            margin-bottom: 2rem; /* フッターとの間隔 */
         }
         .room-status-container h2 {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #4a5568;
-            margin-bottom: 1rem;
+            font-size: 0.95rem; /* 部屋番号ボタンと同じサイズに */
+            font-weight: 600; /* 太字は維持 */
+            color: #4a5568; /* 文字色も調整 */
+            margin-bottom: 1rem; /* 見出し下の余白も調整 */
         }
         .room-list {
-            margin-top: 0.5rem;
+            margin-top: 0.5rem; /* 見出し下の余白を調整したため、ここも調整 */
         }
         .room-item {
-            background-color: #f7fafc;
+            background-color: #f7fafc; /* Light gray for room background */
             border: 1px solid #e2e8f0;
             border-radius: 0.75rem;
             padding: 1rem 1.5rem;
@@ -199,13 +204,13 @@
             width: 100%;
             max-width: 600px;
             text-align: left;
-            margin-bottom: 2rem;
+            margin-bottom: 2rem; /* フッターとの間隔 */
         }
         .participant-list-container h2 {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #4a5568;
-            margin-bottom: 1rem;
+            font-size: 0.95rem; /* 部屋番号ボタンと同じサイズに */
+            font-weight: 600; /* 太字は維持 */
+            color: #4a5568; /* 文字色も調整 */
+            margin-bottom: 1rem; /* 見出し下の余白も調整 */
         }
         .participant-grid {
             display: grid;
@@ -215,7 +220,8 @@
             border: 1px solid #e2e8f0;
             border-radius: 0.5rem;
             background-color: #f7fafc;
-            max-height: calc(0.95rem * 1.5 * 15 + 1.5rem); /* 約15行分の高さに制限 */
+            /* 15行 x 行の高さ（font-size * line-height）を基準に高さを設定 */
+            max-height: calc(0.95rem * 1.5 * 15 + 1.5rem); /* 約15行 + 上下のパディング */
             overflow-y: auto; /* 縦スクロールを有効に */
         }
         .participant-grid-item {
@@ -232,60 +238,28 @@
         }
 
 
-        /* Footer style */
-        .footer {
-            margin-top: 3rem;
-            padding: 1rem;
-            width: 100%;
-            max-width: 600px;
-            text-align: center;
-            font-size: 0.75rem;
-            color: #6b7280;
-        }
-        /* クリック可能な名前のスタイル（現在の状況テーブル用） */
-        .clickable-name {
-            cursor: pointer;
-            color: #3b82f6;
-            text-decoration: underline;
-            transition: color 0.1s ease-in-out;
-        }
-        .clickable-name:hover {
-            color: #2563eb;
-        }
-        /* ハイライトされた行のスタイル */
-        .highlighted-row {
-            background-color: #fffacd; /* 薄い黄色 */
-        }
-
         @media (max-width: 640px) {
             .container, .room-status-container, .participant-list-container {
                 padding: 1.5rem;
             }
             .action-button {
-                font-size: 1.8rem;
-                padding: 1.25rem 1.25rem;
+                font-size: 1.8rem; /* スマホでは少し小さく調整 */
+                padding: 1.25rem 1.25rem; /* スマホでのパディング調整 */
             }
             .action-button-group {
-                flex-direction: column;
+                flex-direction: column; /* Stack buttons on small screens */
                 gap: 0.75rem;
             }
             .room-button {
-                font-size: 0.85rem;
+                font-size: 0.85rem; /* Smaller font for room buttons on small screens */
                 padding: 0.6rem 0.4rem;
             }
             .occupant-table th, .occupant-table td {
-                padding: 0.5rem 0.3rem;
+                padding: 0.5rem 0.3rem; /* Smaller padding for tables on small screens */
                 font-size: 0.8rem;
             }
-            .participant-grid {
-                gap: 0.3rem 0.5rem;
-                max-height: calc(0.85rem * 1.5 * 15 + 1.5rem);
-            }
-            .participant-grid-item {
-                font-size: 0.85rem;
-            }
             .footer {
-                font-size: 0.65rem;
+                font-size: 0.65rem; /* スマホでのフッターの文字サイズ調整 */
             }
         }
     </style>
@@ -328,7 +302,6 @@
     <div class="participant-list-container">
         <h2 class="text-2xl font-bold text-gray-800 mb-4">参加者リスト</h2>
         <div id="participantGrid" class="participant-grid">
-            <!-- 参加者名がここに2列で表示されます -->
             <p class="text-gray-500 col-span-2 text-center">参加者リストを読み込み中...</p>
         </div>
     </div>
@@ -390,7 +363,7 @@
 
 
         let selectedRoom = null; // 現在選択されている部屋を保持する変数
-        let clientRoomOccupancy = {}; // ブラウザのメモリ内で部屋の占有状況を管理
+        let clientRoomOccupancy = {}; // ブラウザのメモリ内で部屋の占有状況を保持
         let currentHighlightedRow = null; // 現在ハイライトされている行を追跡
 
         // カスタムソート関数
@@ -620,7 +593,7 @@
                 showStatusMessage(`処理中...`); // 汎用的なメッセージ
 
                 try {
-                    console.log('Sending to GAS URL:', GAS_WEB_APP_URL);
+                    console.log('Sending to GAS URL:', GAS_WEB_APP_URL, 'with payload:', payloadData);
                     const response = await fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
                         mode: 'cors',
