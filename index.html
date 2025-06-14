@@ -1,335 +1,336 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>入退室システム</title>
-    <style>
-        /* CSSスタイルはここに直接記述 */
-        body {
-            font-family: 'Inter', Arial, sans-serif;
-            width: 100%; /* ポップアップの幅を100%に設定し、max-widthで制御 */
-            padding: 15px;
-            background-color: #f8f9fa;
-            margin: 0;
-            box-sizing: border-box; /* パディングを幅に含める */
-        }
-
-        .container {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 100%; /* コンテナの幅を100%に */
-            max-width: 380px; /* PCでのポップアップの最大幅 */
-            margin: 0 auto; /* 中央寄せ */
-            box-sizing: border-box;
-        }
-
-        h1 {
-            color: #34495e;
-            font-size: 1.8em;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-
-        .input-group {
-            margin-bottom: 18px;
-            text-align: left;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: bold;
-            color: #4a6572;
-            font-size: 0.95em;
-        }
-
-        .input-group input[type="text"] {
-            width: calc(100% - 18px); /* パディングとボーダーを考慮 */
-            padding: 10px;
-            border: 1px solid #dbe2e9;
-            border-radius: 6px;
-            font-size: 1em;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);
-        }
-
-        .room-buttons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr); /* PCでは3列 */
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        .room-buttons button {
-            padding: 12px;
-            font-size: 1em;
-            border: 2px solid #5d9cec;
-            border-radius: 6px;
-            background-color: #e9f5ff;
-            color: #5d9cec;
-            cursor: pointer;
-            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        }
-
-        .room-buttons button.selected {
-            background-color: #5d9cec;
-            color: #fff;
-            border-color: #5d9cec;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .room-buttons button:hover:not(.selected) {
-            background-color: #d1e7f6;
-            border-color: #4a89dc;
-        }
-
-        .action-buttons {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .action-buttons button {
-            flex: 1;
-            padding: 15px;
-            font-size: 1.1em;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.2px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-        }
-
-        .action-buttons button:first-child {
-            background-color: #2ecc71; /* 入室 - 緑 */
-            color: white;
-        }
-
-        .action-buttons button:last-child {
-            background-color: #e74c3c; /* 退室 - 赤 */
-            color: white;
-        }
-
-        .action-buttons button:first-child:hover {
-            background-color: #27ae60;
-            transform: translateY(-1px);
-            box-shadow: 0 3px 6px rgba(0,0,0,0.12);
-        }
-
-        .action-buttons button:last-child:hover {
-            background-color: #c0392b;
-            transform: translateY(-1px);
-            box-shadow: 0 3px 6px rgba(0,0,0,0.12);
-        }
-
-        #message {
-            margin-top: 20px;
-            padding: 12px;
-            border-radius: 6px;
-            font-weight: bold;
-            display: none;
-            font-size: 0.95em;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        }
-
-        #message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #badbcc;
-        }
-
-        #message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        #message.info {
-            background-color: #cce5ff;
-            color: #004085;
-            border: 1px solid #b8daff;
-        }
-
-        /* スマートフォン向けレスポンシブデザイン */
-        @media (max-width: 480px) { /* 画面幅が480px以下のデバイスに適用 */
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>入退室システム</title>
+        <style>
+            /* CSSスタイルはここに直接記述 */
             body {
-                padding: 10px; /* 全体のパディングを減らす */
+                font-family: 'Inter', Arial, sans-serif;
+                width: 100%; /* ポップアップの幅を100%に設定し、max-widthで制御 */
+                padding: 15px;
+                background-color: #f8f9fa;
+                margin: 0;
+                box-sizing: border-box; /* パディングを幅に含める */
             }
 
             .container {
-                padding: 15px; /* コンテナのパディングを減らす */
+                background-color: #ffffff;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                text-align: center;
+                width: 100%; /* コンテナの幅を100%に */
+                max-width: 380px; /* PCでのポップアップの最大幅 */
+                margin: 0 auto; /* 中央寄せ */
+                box-sizing: border-box;
             }
 
             h1 {
-                font-size: 1.6em; /* タイトルのフォントサイズを調整 */
+                color: #34495e;
+                font-size: 1.8em;
+                margin-bottom: 20px;
+                font-weight: 600;
+            }
+
+            .input-group {
+                margin-bottom: 18px;
+                text-align: left;
             }
 
             .input-group label {
-                font-size: 0.9em;
+                display: block;
+                margin-bottom: 6px;
+                font-weight: bold;
+                color: #4a6572;
+                font-size: 0.95em;
             }
 
             .input-group input[type="text"] {
-                font-size: 0.95em;
-                padding: 8px;
+                width: calc(100% - 18px); /* パディングとボーダーを考慮 */
+                padding: 10px;
+                border: 1px solid #dbe2e9;
+                border-radius: 6px;
+                font-size: 1em;
+                box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);
             }
 
             .room-buttons {
-                grid-template-columns: repeat(2, 1fr); /* 部屋番号ボタンを2列に */
-                gap: 6px;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr); /* PCでは3列 */
+                gap: 8px;
+                margin-bottom: 20px;
             }
 
             .room-buttons button {
-                padding: 10px;
-                font-size: 0.9em;
+                padding: 12px;
+                font-size: 1em;
+                border: 2px solid #5d9cec;
+                border-radius: 6px;
+                background-color: #e9f5ff;
+                color: #5d9cec;
+                cursor: pointer;
+                transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            }
+
+            .room-buttons button.selected {
+                background-color: #5d9cec;
+                color: #fff;
+                border-color: #5d9cec;
+                transform: translateY(-1px);
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+
+            .room-buttons button:hover:not(.selected) {
+                background-color: #d1e7f6;
+                border-color: #4a89dc;
             }
 
             .action-buttons {
-                flex-direction: column; /* 入室/退室ボタンを縦に並べる */
-                gap: 8px;
+                display: flex;
+                justify-content: space-between;
+                gap: 10px;
             }
 
             .action-buttons button {
-                width: 100%; /* ボタンの幅を100%に */
-                padding: 12px;
-                font-size: 1em;
+                flex: 1;
+                padding: 15px;
+                font-size: 1.1em;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 0.2px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            }
+
+            .action-buttons button:first-child {
+                background-color: #2ecc71; /* 入室 - 緑 */
+                color: white;
+            }
+
+            .action-buttons button:last-child {
+                background-color: #e74c3c; /* 退室 - 赤 */
+                color: white;
+            }
+
+            .action-buttons button:first-child:hover {
+                background-color: #27ae60;
+                transform: translateY(-1px);
+                box-shadow: 0 3px 6px rgba(0,0,0,0.12);
+            }
+
+            .action-buttons button:last-child:hover {
+                background-color: #c0392b;
+                transform: translateY(-1px);
+                box-shadow: 0 3px 6px rgba(0,0,0,0.12);
             }
 
             #message {
-                padding: 10px;
-                font-size: 0.9em;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>入退室システム</h1>
-
-        <div class="input-group">
-            <label for="nameInput">氏名:</label>
-            <input type="text" id="nameInput" placeholder="氏名を入力してください" autocomplete="name">
-        </div>
-
-        <div class="input-group">
-            <label>部屋番号:</label>
-            <div class="room-buttons">
-                <button data-room="A" aria-label="A部屋を選択">A部屋</button>
-                <button data-room="B" aria-label="B部屋を選択">B部屋</button>
-                <button data-room="C" aria-label="C部屋を選択">C部屋</button>
-                <button data-room="D" aria-label="D部屋を選択">D部屋</button>
-                <button data-room="E" aria-label="E部屋を選択">E部屋</button>
-                <button data-room="F" aria-label="F部屋を選択">F部屋</button>
-            </div>
-        </div>
-
-        <div class="action-buttons">
-            <button id="enterButton" aria-label="入室">入室</button>
-            <button id="exitButton" aria-label="退室">退室</button>
-        </div>
-
-        <div id="message" role="alert" aria-live="polite"></div>
-    </div>
-
-    <script>
-        const nameInput = document.getElementById('nameInput');
-        const roomButtons = document.querySelectorAll('.room-buttons button');
-        const enterButton = document.getElementById('enterButton');
-        const exitButton = document.getElementById('exitButton');
-        const messageDiv = document.getElementById('message');
-
-        let selectedRoom = '';
-
-        // ★★★ あなたのGAS WebアプリケーションのURLをここに設定しました ★★★
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwbkAyGmklfmldaggiWtuqQRm4lkmF2IiBRiTW_SjU8_kl-PyfuLp_u1tfjD77ReKNC8Q/exec'; 
-
-        // 部屋番号ボタンの選択状態を管理
-        roomButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                roomButtons.forEach(btn => btn.classList.remove('selected'));
-                button.classList.add('selected');
-                selectedRoom = button.dataset.room;
-            });
-        });
-
-        // ユーザーへのメッセージ表示関数
-        function showMessage(msg, type) {
-            messageDiv.textContent = msg;
-            messageDiv.className = ''; 
-            messageDiv.classList.add(type); 
-            messageDiv.style.display = 'block';
-
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 5000); 
-        }
-
-        // 入退室アクションを実行するメイン関数
-        async function executeAction(actionType) {
-            const name = nameInput.value.trim();
-
-            // 入力値のバリデーション
-            if (!name) {
-                showMessage('氏名を入力してください。', 'error');
-                return;
-            }
-            if (!selectedRoom) {
-                showMessage('部屋番号を選択してください。', 'error');
-                return;
-            }
-            // GAS_WEB_APP_URLが正しいことを確認
-            if (GAS_WEB_APP_URL !== 'https://script.google.com/macros/s/AKfycbwbkAyGmklfmldaggiWtuqQRm4lkmF2IiBRiTW_SjU8_kl-PyfuLp_u1tfjD77ReKNC8Q/exec') {
-                showMessage('GAS WebアプリケーションのURLが正しくありません。コードを編集してください。', 'error');
-                return;
+                margin-top: 20px;
+                padding: 12px;
+                border-radius: 6px;
+                font-weight: bold;
+                display: none;
+                font-size: 0.95em;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.06);
             }
 
-            showMessage('処理中...', 'info'); // ロード中メッセージ
+            #message.success {
+                background-color: #d4edda;
+                color: #155724;
+                border: 1px solid #badbcc;
+            }
 
-            try {
-                // コンソールに送信先のURLを表示して確認
-                console.log('GAS Web App URL used:', GAS_WEB_APP_URL); 
-                
-                // GAS WebアプリケーションにデータをPOSTリクエストとして送信
-                const response = await fetch(GAS_WEB_APP_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        name: name,
-                        room: selectedRoom,
-                        actionType: actionType
-                    })
-                });
+            #message.error {
+                background-color: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
 
-                // レスポンスをJSONとしてパース
-                const result = await response.json();
+            #message.info {
+                background-color: #cce5ff;
+                color: #004085;
+                border: 1px solid #b8daff;
+            }
 
-                // GASからのレスポンスに基づいてメッセージを表示
-                if (result.success) {
-                    showMessage(result.message, 'success');
-                    nameInput.value = '';
-                    roomButtons.forEach(btn => btn.classList.remove('selected'));
-                    selectedRoom = '';
-                } else {
-                    showMessage(`エラー: ${result.message}`, 'error');
+            /* スマートフォン向けレスポンシブデザイン */
+            @media (max-width: 480px) { /* 画面幅が480px以下のデバイスに適用 */
+                body {
+                    padding: 10px; /* 全体のパディングを減らす */
                 }
-            } catch (error) {
-                console.error('GAS Webアプリケーションとの通信に失敗しました:', error);
-                showMessage('サーバーとの通信に失敗しました。ネットワーク接続またはGAS Webアプリケーションの稼働状況を確認してください。', 'error');
-            }
-        }
 
-        // ボタンにイベントリスナーを設定
-        enterButton.addEventListener('click', () => executeAction('enter'));
-        exitButton.addEventListener('click', () => executeAction('exit'));
-    </script>
-</body>
-</html>
+                .container {
+                    padding: 15px; /* コンテナのパディングを減らす */
+                }
+
+                h1 {
+                    font-size: 1.6em; /* タイトルのフォントサイズを調整 */
+                }
+
+                .input-group label {
+                    font-size: 0.9em;
+                }
+
+                .input-group input[type="text"] {
+                    font-size: 0.95em;
+                    padding: 8px;
+                }
+
+                .room-buttons {
+                    grid-template-columns: repeat(2, 1fr); /* 部屋番号ボタンを2列に */
+                    gap: 6px;
+                }
+
+                .room-buttons button {
+                    padding: 10px;
+                    font-size: 0.9em;
+                }
+
+                .action-buttons {
+                    flex-direction: column; /* 入室/退室ボタンを縦に並べる */
+                    gap: 8px;
+                }
+
+                .action-buttons button {
+                    width: 100%; /* ボタンの幅を100%に */
+                    padding: 12px;
+                    font-size: 1em;
+                }
+
+                #message {
+                    padding: 10px;
+                    font-size: 0.9em;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>入退室システム</h1>
+
+            <div class="input-group">
+                <label for="nameInput">氏名:</label>
+                <input type="text" id="nameInput" placeholder="氏名を入力してください" autocomplete="name">
+            </div>
+
+            <div class="input-group">
+                <label>部屋番号:</label>
+                <div class="room-buttons">
+                    <button data-room="A" aria-label="A部屋を選択">A部屋</button>
+                    <button data-room="B" aria-label="B部屋を選択">B部屋</button>
+                    <button data-room="C" aria-label="C部屋を選択">C部屋</button>
+                    <button data-room="D" aria-label="D部屋を選択">D部屋</button>
+                    <button data-room="E" aria-label="E部屋を選択">E部屋</button>
+                    <button data-room="F" aria-label="F部屋を選択">F部屋</button>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="enterButton" aria-label="入室">入室</button>
+                <button id="exitButton" aria-label="退室">退室</button>
+            </div>
+
+            <div id="message" role="alert" aria-live="polite"></div>
+        </div>
+
+        <script>
+            const nameInput = document.getElementById('nameInput');
+            const roomButtons = document.querySelectorAll('.room-buttons button');
+            const enterButton = document.getElementById('enterButton');
+            const exitButton = document.getElementById('exitButton');
+            const messageDiv = document.getElementById('message');
+
+            let selectedRoom = '';
+
+            // ★★★ あなたのGAS WebアプリケーションのURLをここに設定しました ★★★
+            const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwbkAyGmklfmldaggiWtuqQRm4lkmF2IiBRiTW_SjU8_kl-PyfuLp_u1tfjD77ReKNC8Q/exec'; 
+
+            // 部屋番号ボタンの選択状態を管理
+            roomButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    roomButtons.forEach(btn => btn.classList.remove('selected'));
+                    button.classList.add('selected');
+                    selectedRoom = button.dataset.room;
+                });
+            });
+
+            // ユーザーへのメッセージ表示関数
+            function showMessage(msg, type) {
+                messageDiv.textContent = msg;
+                messageDiv.className = ''; 
+                messageDiv.classList.add(type); 
+                messageDiv.style.display = 'block';
+
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000); 
+            }
+
+            // 入退室アクションを実行するメイン関数
+            async function executeAction(actionType) {
+                const name = nameInput.value.trim();
+
+                // 入力値のバリデーション
+                if (!name) {
+                    showMessage('氏名を入力してください。', 'error');
+                    return;
+                }
+                if (!selectedRoom) {
+                    showMessage('部屋番号を選択してください。', 'error');
+                    return;
+                }
+                // GAS_WEB_APP_URLが正しいことを確認
+                if (GAS_WEB_APP_URL !== 'https://script.google.com/macros/s/AKfycbwbkAyGmklfmldaggiWtuqQRm4lkmF2IiBRiTW_SjU8_kl-PyfuLp_u1tfjD77ReKNC8Q/exec') {
+                    showMessage('GAS WebアプリケーションのURLが正しくありません。コードを編集してください。', 'error');
+                    return;
+                }
+
+                showMessage('処理中...', 'info'); // ロード中メッセージ
+
+                try {
+                    // コンソールに送信先のURLを表示して確認
+                    console.log('GAS Web App URL used:', GAS_WEB_APP_URL); 
+                    
+                    // GAS WebアプリケーションにデータをPOSTリクエストとして送信
+                    const response = await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            name: name,
+                            room: selectedRoom,
+                            actionType: actionType
+                        })
+                    });
+
+                    // レスポンスをJSONとしてパース
+                    const result = await response.json();
+
+                    // GASからのレスポンスに基づいてメッセージを表示
+                    if (result.success) {
+                        showMessage(result.message, 'success');
+                        nameInput.value = '';
+                        roomButtons.forEach(btn => btn.classList.remove('selected'));
+                        selectedRoom = '';
+                    } else {
+                        showMessage(`エラー: ${result.message}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('GAS Webアプリケーションとの通信に失敗しました:', error);
+                    showMessage('サーバーとの通信に失敗しました。ネットワーク接続またはGAS Webアプリケーションの稼働状況を確認してください。', 'error');
+                }
+            }
+
+            // ボタンにイベントリスナーを設定
+            enterButton.addEventListener('click', () => executeAction('enter'));
+            exitButton.addEventListener('click', () => executeAction('exit'));
+        </script>
+    </body>
+    </html>
+    
