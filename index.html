@@ -281,7 +281,7 @@
             padding-top: 15px;
             border-top: 1px solid #eee;
             color: #777;
-            font-size: 0.75em; /* ★変更: さらに小さいフォントサイズ */
+            font-size: 0.75em; 
             text-align: center;
         }
 
@@ -378,7 +378,7 @@
         <h1>入退室システム</h1>
         <!-- 歓迎メッセージの追加 -->
         <p class="welcome-message">
-            <span id="welcomeMessageText">本日は〇〇会にご参加頂きありがとうございます。</span>
+            <span id="welcomeMessageText">〇月〇日(〇)／ジャンカラ 〇〇〇店／11時～19時開催🎤本日は、〇〇〇〇〇会にご参加いただきありがとうございます。</span>
         </p>
         <!-- 歓迎メッセージと氏名入力欄の間に線を追加 -->
         <hr class="section-divider divider-after-welcome">
@@ -531,7 +531,8 @@
          */
         function setupWelcomeMessageAnimation() {
             // 親要素の幅（メッセージが表示される領域）
-            const parentWidth = welcomeMessageText.parentElement.offsetWidth;
+            const welcomeMessageContainer = welcomeMessageText.parentElement;
+            const parentWidth = welcomeMessageContainer.offsetWidth;
             // テキスト自身の幅
             const textWidth = welcomeMessageText.scrollWidth;
 
@@ -540,10 +541,10 @@
                 const animationDuration = textWidth / 50; // テキストの長さに応じて時間を調整 (50px/秒の速度目安)
                 welcomeMessageText.style.setProperty('--marquee-duration', `${animationDuration}s`);
                 welcomeMessageText.style.setProperty('--marquee-distance', `-${textWidth}px`); // テキストの幅分だけ移動
-                welcomeMessageText.parentElement.classList.add('marquee-active');
+                welcomeMessageContainer.classList.add('marquee-active');
             } else {
                 // テキストがはみ出さない場合はアニメーションを削除
-                welcomeMessageText.parentElement.classList.remove('marquee-active');
+                welcomeMessageContainer.classList.remove('marquee-active');
                 welcomeMessageText.style.removeProperty('--marquee-duration');
                 welcomeMessageText.style.removeProperty('--marquee-distance');
             }
@@ -618,7 +619,9 @@
             setupWelcomeMessageAnimation(); // ウェルカムメッセージのアニメーションをセットアップ
 
             // ウィンドウサイズ変更時にアニメーションを再評価 (ポップアップのサイズ変更には対応しないが、念のため)
-            window.addEventListener('resize', setupWelcomeMessageAnimation);
+            // ポップアップのサイズは固定なので、通常はリサイズイベントは不要ですが、
+            // もし将来的にサイズが動的に変わる可能性がある場合は残しておくと良いでしょう。
+            // window.addEventListener('resize', setupWelcomeMessageAnimation);
         });
     </script>
 </body>
