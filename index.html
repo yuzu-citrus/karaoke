@@ -161,15 +161,15 @@
         /* 新しい区切り線スタイル */
         .section-divider {
             border: none; /* デフォルトの線を無効化 */
-            border-top: 1px solid #eee; /* participant-list-sectionと同じ線 */
+            border-top: 1px solid #eee; /* 入室状況セクションと同じ線 */
             margin: 20px 0; /* 上下の余白 */
         }
 
         /* 入室状況セクション */
         .status-list-section {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
+            margin-top: 30px; /* 線との距離を保つ */
+            padding-top: 0;
+            border-top: none;
         }
 
         .status-list-section h2 {
@@ -205,9 +205,9 @@
 
         /* 参加者一覧セクションの追加スタイル */
         .all-participants-list-section {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
+            margin-top: 30px; /* 入室状況リストとの距離 */
+            padding-top: 0;
+            border-top: none;
         }
 
         .all-participants-list-section h2 {
@@ -220,14 +220,13 @@
 
         .all-participants-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* ★常に2列表示 (修正) */
+            grid-template-columns: repeat(2, 1fr); /* 常に2列表示 */
             gap: 10px;
             padding: 10px;
             border: 1px solid #dbe2e9;
             border-radius: 8px;
             background-color: #f9f9f9;
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
-            /* max-heightとoverflow-y: auto は全体表示のため削除済み */
         }
 
         .all-participants-grid a {
@@ -301,7 +300,7 @@
 
             .status-list-section, .all-participants-list-section {
                 margin-top: 20px;
-                padding-top: 15px;
+                padding-top: 0;
             }
             .status-list-section h2, .all-participants-list-section h2 {
                 font-size: 0.95em;
@@ -313,10 +312,6 @@
                 font-size: 0.9em;
                 padding: 5px 0;
             }
-            /* ★スマートフォンでも2列を維持するため、このメディアクエリ内の変更を削除しました */
-            /* .all-participants-grid {
-                grid-template-columns: 1fr;
-            } */
             .all-participants-grid a {
                 font-size: 0.9em;
             }
@@ -344,9 +339,6 @@
             </div>
         </div>
 
-        <!-- F部屋ボタンと入室ボタンの間に線を追加 -->
-        <hr class="section-divider">
-
         <div class="action-buttons">
             <button id="enterButton" aria-label="入室">入室</button>
             <button id="exitButton" aria-label="退室">退室</button>
@@ -354,8 +346,8 @@
 
         <div id="message" role="alert" aria-live="polite"></div>
 
-        <!-- 退室ボタンと入室状況の間に線を追加 -->
-        <hr class="section-divider">
+        <!-- 退室ボタンと入室状況の間の線は削除されました -->
+        <!-- この<hr>タグを削除しました -->
 
         <div class="status-list-section">
             <h2>入室状況</h2>
@@ -537,3 +529,4 @@
     </script>
 </body>
 </html>
+
