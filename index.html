@@ -30,8 +30,33 @@
         h1 {
             color: #34495e;
             font-size: 1.8em;
-            margin-bottom: 20px;
+            margin-bottom: 5px; /* メッセージとの間隔を調整 */
             font-weight: 600;
+        }
+
+        /* 歓迎メッセージのスタイル */
+        .welcome-message {
+            font-size: 0.85em; /* 小さいフォントサイズ */
+            color: #555;
+            margin-bottom: 30px; 
+            white-space: nowrap; /* テキストを折り返さない */
+            overflow: hidden;    /* はみ出した部分を隠す */
+            text-align: left;    /* 左寄せ */
+            position: relative; /* アニメーションの基準点 */
+            box-sizing: border-box;
+            line-height: 1.5em; /* 行の高さを調整して中央に */
+        }
+
+        /* マーキーアニメーションのキーフレーム定義 */
+        @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(var(--marquee-distance)); } /* 動的に距離を設定 */
+        }
+
+        /* アニメーションを適用するクラス */
+        .welcome-message.marquee-active #welcomeMessageText {
+            display: inline-block; /* アニメーションのために必要 */
+            animation: marquee var(--marquee-duration) linear infinite;
         }
 
         .input-group {
@@ -161,9 +186,15 @@
         /* 新しい区切り線スタイル */
         .section-divider {
             border: none; /* デフォルトの線を無効化 */
-            border-top: 1px solid #eee; /* 入室状況セクションと同じ線 */
+            border-top: 1px solid #eee; 
             margin: 20px 0; /* 上下の余白 */
         }
+        /* 歓迎メッセージ直後の線にのみ適用するマージン */
+        .divider-after-welcome {
+            margin-top: 10px; /* 歓迎メッセージからの距離 */
+            margin-bottom: 25px; /* 氏名入力欄への距離 */
+        }
+
 
         /* 入室状況セクション */
         .status-list-section {
@@ -244,6 +275,16 @@
             text-decoration: underline;
         }
 
+        /* フッターセクションのスタイル */
+        .footer-section {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            color: #777;
+            font-size: 0.75em; /* ★変更: さらに小さいフォントサイズ */
+            text-align: center;
+        }
+
 
         /* スマートフォン向けレスポンシブデザイン */
         @media (max-width: 480px) {
@@ -257,6 +298,15 @@
 
             h1 {
                 font-size: 1.6em;
+            }
+
+            .welcome-message {
+                font-size: 0.8em;
+                margin-bottom: 20px; /* スマホでは少し狭くする */
+            }
+            .divider-after-welcome {
+                margin-top: 8px;
+                margin-bottom: 20px;
             }
 
             .input-group label {
@@ -315,12 +365,23 @@
             .all-participants-grid a {
                 font-size: 0.9em;
             }
+            .footer-section {
+                margin-top: 20px;
+                padding-top: 10px;
+                font-size: 0.7em; /* スマホではさらに小さく */
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>入退室システム</h1>
+        <!-- 歓迎メッセージの追加 -->
+        <p class="welcome-message">
+            <span id="welcomeMessageText">本日は〇〇会にご参加頂きありがとうございます。</span>
+        </p>
+        <!-- 歓迎メッセージと氏名入力欄の間に線を追加 -->
+        <hr class="section-divider divider-after-welcome">
 
         <div class="input-group">
             <label for="nameInput">氏名:</label>
@@ -346,8 +407,8 @@
 
         <div id="message" role="alert" aria-live="polite"></div>
 
-        <!-- 退室ボタンと入室状況の間の線は削除されました -->
-        <!-- この<hr>タグを削除しました -->
+        <!-- 退室ボタンと入室状況の間に線を追加 -->
+        <hr class="section-divider">
 
         <div class="status-list-section">
             <h2>入室状況</h2>
@@ -363,6 +424,11 @@
                 <!-- JavaScriptでここに30名の名前が生成されます -->
             </div>
         </div>
+
+        <!-- フッターセクションの追加 -->
+        <div class="footer-section">
+            株式会社柚子ポテト
+        </div>
     </div>
 
     <script>
@@ -373,6 +439,7 @@
         const messageDiv = document.getElementById('message');
         const currentParticipantListDiv = document.getElementById('currentParticipantList');
         const allParticipantListDiv = document.getElementById('allParticipantList');
+        const welcomeMessageText = document.getElementById('welcomeMessageText');
 
         let selectedRoom = '';
 
@@ -459,6 +526,29 @@
             }
         }
 
+        /**
+         * ウェルカムメッセージにマーキーアニメーションを適用するかどうかを判断する
+         */
+        function setupWelcomeMessageAnimation() {
+            // 親要素の幅（メッセージが表示される領域）
+            const parentWidth = welcomeMessageText.parentElement.offsetWidth;
+            // テキスト自身の幅
+            const textWidth = welcomeMessageText.scrollWidth;
+
+            if (textWidth > parentWidth) {
+                // テキストがはみ出す場合のみアニメーションを適用
+                const animationDuration = textWidth / 50; // テキストの長さに応じて時間を調整 (50px/秒の速度目安)
+                welcomeMessageText.style.setProperty('--marquee-duration', `${animationDuration}s`);
+                welcomeMessageText.style.setProperty('--marquee-distance', `-${textWidth}px`); // テキストの幅分だけ移動
+                welcomeMessageText.parentElement.classList.add('marquee-active');
+            } else {
+                // テキストがはみ出さない場合はアニメーションを削除
+                welcomeMessageText.parentElement.classList.remove('marquee-active');
+                welcomeMessageText.style.removeProperty('--marquee-duration');
+                welcomeMessageText.style.removeProperty('--marquee-distance');
+            }
+        }
+
 
         // 入退室アクションを実行するメイン関数
         async function executeAction(actionType) {
@@ -525,8 +615,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadCurrentParticipantList(); // 入室状況を読み込む
             generateAllParticipantsList(); // 参加者一覧を生成する
+            setupWelcomeMessageAnimation(); // ウェルカムメッセージのアニメーションをセットアップ
+
+            // ウィンドウサイズ変更時にアニメーションを再評価 (ポップアップのサイズ変更には対応しないが、念のため)
+            window.addEventListener('resize', setupWelcomeMessageAnimation);
         });
     </script>
 </body>
 </html>
-
