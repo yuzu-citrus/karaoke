@@ -22,7 +22,7 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
             width: 100%; /* コンテナの幅を100%に */
-            max-width: 380px; /* PCでのポップアップの最大幅 */
+            max-width: 400px; /* ★変更: ポップアップの最大幅を少し広げる */
             margin: 0 auto; /* 中央寄せ */
             box-sizing: border-box;
         }
@@ -83,8 +83,8 @@
 
         .room-buttons {
             display: grid;
-            grid-template-columns: repeat(3, 1fr); /* PCでは3列 */
-            gap: 8px;
+            grid-template-columns: repeat(3, 1fr) !important; /* ★変更: 3列表示を強制 */
+            gap: 5px; /* ★変更: ボタン間の間隔を狭める */
             margin-bottom: 20px;
         }
 
@@ -319,8 +319,8 @@
             }
 
             .room-buttons {
-                grid-template-columns: repeat(2, 1fr); /* 部屋番号ボタンを2列に */
-                gap: 6px;
+                grid-template-columns: repeat(3, 1fr) !important; /* ★変更: スマホでも3列を強制 */
+                gap: 5px; /* スマホでもボタン間隔を狭める */
             }
 
             .room-buttons button {
@@ -368,7 +368,7 @@
             .footer-section {
                 margin-top: 20px;
                 padding-top: 10px;
-                font-size: 0.7em; /* スマホではさらに小さく */
+                font-size: 0.7em;
             }
         }
     </style>
@@ -530,20 +530,16 @@
          * ウェルカムメッセージにマーキーアニメーションを適用するかどうかを判断する
          */
         function setupWelcomeMessageAnimation() {
-            // 親要素の幅（メッセージが表示される領域）
             const welcomeMessageContainer = welcomeMessageText.parentElement;
             const parentWidth = welcomeMessageContainer.offsetWidth;
-            // テキスト自身の幅
             const textWidth = welcomeMessageText.scrollWidth;
 
             if (textWidth > parentWidth) {
-                // テキストがはみ出す場合のみアニメーションを適用
                 const animationDuration = textWidth / 50; // テキストの長さに応じて時間を調整 (50px/秒の速度目安)
                 welcomeMessageText.style.setProperty('--marquee-duration', `${animationDuration}s`);
                 welcomeMessageText.style.setProperty('--marquee-distance', `-${textWidth}px`); // テキストの幅分だけ移動
                 welcomeMessageContainer.classList.add('marquee-active');
             } else {
-                // テキストがはみ出さない場合はアニメーションを削除
                 welcomeMessageContainer.classList.remove('marquee-active');
                 welcomeMessageText.style.removeProperty('--marquee-duration');
                 welcomeMessageText.style.removeProperty('--marquee-distance');
@@ -618,9 +614,7 @@
             generateAllParticipantsList(); // 参加者一覧を生成する
             setupWelcomeMessageAnimation(); // ウェルカムメッセージのアニメーションをセットアップ
 
-            // ウィンドウサイズ変更時にアニメーションを再評価 (ポップアップのサイズ変更には対応しないが、念のため)
-            // ポップアップのサイズは固定なので、通常はリサイズイベントは不要ですが、
-            // もし将来的にサイズが動的に変わる可能性がある場合は残しておくと良いでしょう。
+            // ウィンドウサイズ変更時にアニメーションを再評価 (ポップアップのサイズは固定なので通常は不要ですが、念のため残しておきます)
             // window.addEventListener('resize', setupWelcomeMessageAnimation);
         });
     </script>
