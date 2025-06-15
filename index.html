@@ -22,7 +22,7 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
             width: 100%; /* コンテナの幅を100%に */
-            max-width: 400px; /* ★変更: ポップアップの最大幅を少し広げる */
+            max-width: 400px; /* PCでのポップアップの最大幅 */
             margin: 0 auto; /* 中央寄せ */
             box-sizing: border-box;
         }
@@ -47,10 +47,10 @@
             line-height: 1.5em; /* 行の高さを調整して中央に */
         }
 
-        /* マーキーアニメーションのキーフレーム定義 */
+        /* ★変更：マーキーアニメーションのキーフレーム定義 */
         @keyframes marquee {
-            0% { transform: translateX(0%); }
-            100% { transform: translateX(var(--marquee-distance)); } /* 動的に距離を設定 */
+            0% { transform: translateX(100%); } /* 右端から開始 */
+            100% { transform: translateX(calc(-100% - var(--text-width-px))); } /* 左端までスクロールし、テキストの幅分だけさらに移動 */
         }
 
         /* アニメーションを適用するクラス */
@@ -83,8 +83,8 @@
 
         .room-buttons {
             display: grid;
-            grid-template-columns: repeat(3, 1fr) !important; /* ★変更: 3列表示を強制 */
-            gap: 5px; /* ★変更: ボタン間の間隔を狭める */
+            grid-template-columns: repeat(3, 1fr) !important; /* PCでは3列 */
+            gap: 5px; /* ボタン間の間隔を狭める */
             margin-bottom: 20px;
         }
 
@@ -319,8 +319,8 @@
             }
 
             .room-buttons {
-                grid-template-columns: repeat(3, 1fr) !important; /* ★変更: スマホでも3列を強制 */
-                gap: 5px; /* スマホでもボタン間隔を狭める */
+                grid-template-columns: repeat(2, 1fr); /* 部屋番号ボタンを2列に (前回修正で残していたため) */
+                gap: 6px;
             }
 
             .room-buttons button {
@@ -534,15 +534,24 @@
             const parentWidth = welcomeMessageContainer.offsetWidth;
             const textWidth = welcomeMessageText.scrollWidth;
 
+            // コンソールでデバッグ情報を出力
+            console.log(`[Marquee Debug] Parent width: ${parentWidth}px, Text width: ${textWidth}px`);
+
             if (textWidth > parentWidth) {
-                const animationDuration = textWidth / 50; // テキストの長さに応じて時間を調整 (50px/秒の速度目安)
+                // テキストがはみ出す場合のみアニメーションを適用
+                // アニメーションの速度を調整するために、動く距離に基づいて時間を計算
+                const animationDuration = textWidth / 50; // 例: 50px/秒の速度
+
                 welcomeMessageText.style.setProperty('--marquee-duration', `${animationDuration}s`);
-                welcomeMessageText.style.setProperty('--marquee-distance', `-${textWidth}px`); // テキストの幅分だけ移動
+                welcomeMessageText.style.setProperty('--text-width-px', `${textWidth}px`); // CSSでcalc()を使用するためにピクセル値として設定
                 welcomeMessageContainer.classList.add('marquee-active');
+                console.log(`[Marquee Debug] Marquee activated. Duration: ${animationDuration}s`);
             } else {
+                // テキストがはみ出さない場合はアニメーションを削除
                 welcomeMessageContainer.classList.remove('marquee-active');
                 welcomeMessageText.style.removeProperty('--marquee-duration');
-                welcomeMessageText.style.removeProperty('--marquee-distance');
+                welcomeMessageText.style.removeProperty('--text-width-px');
+                console.log('[Marquee Debug] Marquee deactivated: Text fits.');
             }
         }
 
@@ -614,8 +623,9 @@
             generateAllParticipantsList(); // 参加者一覧を生成する
             setupWelcomeMessageAnimation(); // ウェルカムメッセージのアニメーションをセットアップ
 
-            // ウィンドウサイズ変更時にアニメーションを再評価 (ポップアップのサイズは固定なので通常は不要ですが、念のため残しておきます)
-            // window.addEventListener('resize', setupWelcomeMessageAnimation);
+            // コンテナの幅が変わる可能性があるため、DOMの読み込み後にもう一度チェックするとより確実 (例: 画像のロード後など)
+            // このケースではポップアップサイズは固定なので、通常は不要。
+            // setTimeout(setupWelcomeMessageAnimation, 500); 
         });
     </script>
 </body>
