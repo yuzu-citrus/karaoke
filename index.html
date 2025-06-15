@@ -47,10 +47,10 @@
             line-height: 1.5em; /* 行の高さを調整して中央に */
         }
 
-        /* ★変更：マーキーアニメーションのキーフレーム定義 */
+        /* マーキーアニメーションのキーフレーム定義 */
         @keyframes marquee {
-            0% { transform: translateX(100%); } /* 右端から開始 */
-            100% { transform: translateX(calc(-100% - var(--text-width-px))); } /* 左端までスクロールし、テキストの幅分だけさらに移動 */
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(var(--marquee-distance)); } /* 動的に距離を設定 */
         }
 
         /* アニメーションを適用するクラス */
@@ -281,7 +281,7 @@
             padding-top: 15px;
             border-top: 1px solid #eee;
             color: #777;
-            font-size: 0.75em; 
+            font-size: 0.75em; /* 小さいフォントサイズ */
             text-align: center;
         }
 
@@ -319,7 +319,7 @@
             }
 
             .room-buttons {
-                grid-template-columns: repeat(2, 1fr); /* 部屋番号ボタンを2列に (前回修正で残していたため) */
+                grid-template-columns: repeat(2, 1fr); /* 部屋番号ボタンを2列に */
                 gap: 6px;
             }
 
@@ -427,7 +427,7 @@
 
         <!-- フッターセクションの追加 -->
         <div class="footer-section">
-            株式会社柚子ポテト
+            &copy; 2025 株式会社 柚子ポテト
         </div>
     </div>
 
@@ -623,9 +623,8 @@
             generateAllParticipantsList(); // 参加者一覧を生成する
             setupWelcomeMessageAnimation(); // ウェルカムメッセージのアニメーションをセットアップ
 
-            // コンテナの幅が変わる可能性があるため、DOMの読み込み後にもう一度チェックするとより確実 (例: 画像のロード後など)
-            // このケースではポップアップサイズは固定なので、通常は不要。
-            // setTimeout(setupWelcomeMessageAnimation, 500); 
+            // ウィンドウサイズ変更時にアニメーションを再評価 (ポップアップのサイズは固定なので通常は不要ですが、念のため残しておきます)
+            // window.addEventListener('resize', setupWelcomeMessageAnimation);
         });
     </script>
 </body>
