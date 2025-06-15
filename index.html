@@ -76,7 +76,7 @@
         }
 
         .room-buttons button.selected {
-            background-color: #4CAF50; /* 緑色 (変更) */
+            background-color: #4CAF50; /* 緑色 */
             color: #fff; /* 文字色を白に */
             border-color: #388E3C; /* 少し濃い緑のボーダー */
             transform: translateY(-1px);
@@ -114,7 +114,7 @@
         }
 
         .action-buttons button:last-child {
-            background-color: #e74c3c; /* 退室 - 赤色 (変更なし) */
+            background-color: #e74c3c; /* 退室 - 赤色 */
             color: white;
         }
 
@@ -158,55 +158,106 @@
             border: 1px solid #b8daff;
         }
 
-        /* 参加者リストのセクション */
-        .participant-list-section {
+        /* 新しい区切り線スタイル */
+        .section-divider {
+            border: none; /* デフォルトの線を無効化 */
+            border-top: 1px solid #eee; /* participant-list-sectionと同じ線 */
+            margin: 20px 0; /* 上下の余白 */
+        }
+
+        /* 入室状況セクション */
+        .status-list-section {
             margin-top: 30px;
             padding-top: 20px;
             border-top: 1px solid #eee;
         }
 
-        .participant-list-section h2 {
-            font-size: 1.2em;
+        .status-list-section h2 {
+            font-size: 1em;
             color: #34495e;
             margin-bottom: 15px;
+            text-align: left;
+            font-weight: bold;
         }
 
-        #participantList {
+        #currentParticipantList {
             margin-top: 0;
             padding: 10px;
             border: 1px solid #dbe2e9;
             border-radius: 8px;
-            max-height: 200px; /* 約5～6名分が表示できる高さ */
-            overflow-y: auto; /* 縦スクロールを有効にする */
+            max-height: 200px;
+            overflow-y: auto;
             background-color: #f9f9f9;
             text-align: left;
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
         }
 
-        #participantList div {
+        #currentParticipantList div {
             padding: 6px 0;
             border-bottom: 1px dashed #e0e0e0;
             color: #555;
             font-size: 0.95em;
         }
 
-        #participantList div:last-child {
+        #currentParticipantList div:last-child {
             border-bottom: none;
+        }
+
+        /* 参加者一覧セクションの追加スタイル */
+        .all-participants-list-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .all-participants-list-section h2 {
+            font-size: 1em;
+            color: #34495e;
+            margin-bottom: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .all-participants-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* ★常に2列表示 (修正) */
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid #dbe2e9;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+            /* max-heightとoverflow-y: auto は全体表示のため削除済み */
+        }
+
+        .all-participants-grid a {
+            display: block;
+            padding: 5px 0;
+            color: #007bff;
+            text-decoration: none;
+            font-size: 0.95em;
+            text-align: left;
+            transition: color 0.2s ease;
+        }
+
+        .all-participants-grid a:hover {
+            color: #0056b3;
+            text-decoration: underline;
         }
 
 
         /* スマートフォン向けレスポンシブデザイン */
-        @media (max-width: 480px) { /* 画面幅が480px以下のデバイスに適用 */
+        @media (max-width: 480px) {
             body {
-                padding: 10px; /* 全体のパディングを減らす */
+                padding: 10px;
             }
 
             .container {
-                padding: 15px; /* コンテナのパディングを減らす */
+                padding: 15px;
             }
 
             h1 {
-                font-size: 1.6em; /* タイトルのフォントサイズを調整 */
+                font-size: 1.6em;
             }
 
             .input-group label {
@@ -229,12 +280,12 @@
             }
 
             .action-buttons {
-                flex-direction: column; /* 入室/退室ボタンを縦に並べる */
+                flex-direction: column;
                 gap: 8px;
             }
 
             .action-buttons button {
-                width: 100%; /* ボタンの幅を100%に */
+                width: 100%;
                 padding: 12px;
                 font-size: 1em;
             }
@@ -244,19 +295,30 @@
                 font-size: 0.9em;
             }
 
-            .participant-list-section {
+            .section-divider {
+                margin: 15px 0;
+            }
+
+            .status-list-section, .all-participants-list-section {
                 margin-top: 20px;
                 padding-top: 15px;
             }
-            .participant-list-section h2 {
-                font-size: 1.1em;
+            .status-list-section h2, .all-participants-list-section h2 {
+                font-size: 0.95em;
             }
-            #participantList {
-                max-height: 150px; /* スマホでは高さを少し抑える */
+            #currentParticipantList {
+                max-height: 150px;
             }
-            #participantList div {
+            #currentParticipantList div {
                 font-size: 0.9em;
                 padding: 5px 0;
+            }
+            /* ★スマートフォンでも2列を維持するため、このメディアクエリ内の変更を削除しました */
+            /* .all-participants-grid {
+                grid-template-columns: 1fr;
+            } */
+            .all-participants-grid a {
+                font-size: 0.9em;
             }
         }
     </style>
@@ -282,6 +344,9 @@
             </div>
         </div>
 
+        <!-- F部屋ボタンと入室ボタンの間に線を追加 -->
+        <hr class="section-divider">
+
         <div class="action-buttons">
             <button id="enterButton" aria-label="入室">入室</button>
             <button id="exitButton" aria-label="退室">退室</button>
@@ -289,10 +354,21 @@
 
         <div id="message" role="alert" aria-live="polite"></div>
 
-        <div class="participant-list-section">
-            <h2>入室中の参加者 (30名表示可能)</h2>
-            <div id="participantList">
+        <!-- 退室ボタンと入室状況の間に線を追加 -->
+        <hr class="section-divider">
+
+        <div class="status-list-section">
+            <h2>入室状況</h2>
+            <div id="currentParticipantList">
                 <div>現在入室中の参加者はいません。</div>
+            </div>
+        </div>
+
+        <!-- 参加者一覧セクションの追加 -->
+        <div class="all-participants-list-section">
+            <h2>参加者一覧</h2>
+            <div id="allParticipantList" class="all-participants-grid">
+                <!-- JavaScriptでここに30名の名前が生成されます -->
             </div>
         </div>
     </div>
@@ -303,7 +379,8 @@
         const enterButton = document.getElementById('enterButton');
         const exitButton = document.getElementById('exitButton');
         const messageDiv = document.getElementById('message');
-        const participantListDiv = document.getElementById('participantList'); // 新しい要素
+        const currentParticipantListDiv = document.getElementById('currentParticipantList');
+        const allParticipantListDiv = document.getElementById('allParticipantList');
 
         let selectedRoom = '';
 
@@ -332,50 +409,62 @@
         }
 
         /**
-         * 参加者リストをGASから取得し、UIを更新する
+         * 現在入室中の参加者リストをGASから取得し、UIを更新する
          */
-        async function loadParticipantList() {
-            // メッセージは短く、すぐに消えるようにする
-            showMessage('参加者リストを読み込み中...', 'info'); 
+        async function loadCurrentParticipantList() {
+            showMessage('入室状況を読み込み中...', 'info'); 
             try {
                 const response = await fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ actionType: 'getList' }) // 新しいアクションタイプ
+                    body: JSON.stringify({ actionType: 'getList' })
                 });
                 const result = await response.json();
                 if (result.success) {
-                    updateParticipantListUI(result.participants);
-                    // 参加者リスト読み込み成功のメッセージは短く、すぐに消えるようにする
-                    setTimeout(() => showMessage('参加者リストを更新しました。', 'success'), 100);
+                    updateCurrentParticipantListUI(result.participants);
+                    setTimeout(() => showMessage('入室状況を更新しました。', 'success'), 100);
                 } else {
-                    showMessage(`参加者リストの取得エラー: ${result.message}`, 'error');
+                    showMessage(`入室状況の取得エラー: ${result.message}`, 'error');
                 }
             } catch (error) {
-                console.error('参加者リストの通信エラー:', error);
-                showMessage('参加者リストの取得に失敗しました。ネットワーク接続を確認してください。', 'error');
+                console.error('入室状況の通信エラー:', error);
+                showMessage('入室状況の取得に失敗しました。ネットワーク接続を確認してください。', 'error');
             }
         }
 
         /**
-         * 取得した参加者リストでUIを更新する
+         * 取得した入室中の参加者リストでUIを更新する
          * @param {Array<string>} participants - 入室中の参加者の名前の配列
          */
-        function updateParticipantListUI(participants) {
-            participantListDiv.innerHTML = ''; // 既存のリストをクリア
+        function updateCurrentParticipantListUI(participants) {
+            currentParticipantListDiv.innerHTML = ''; // 既存のリストをクリア
 
             if (!participants || participants.length === 0) {
-                participantListDiv.innerHTML = '<div>現在入室中の参加者はいません。</div>';
+                currentParticipantListDiv.innerHTML = '<div>現在入室中の参加者はいません。</div>';
                 return;
             }
-
-            // 必要であればここで参加者をソートできます (例: participants.sort();)
 
             participants.forEach(name => {
                 const div = document.createElement('div');
                 div.textContent = name;
-                participantListDiv.appendChild(div);
+                currentParticipantListDiv.appendChild(div);
             });
+        }
+
+        /**
+         * 全参加者リスト（固定30名）を生成し、UIを更新する
+         */
+        function generateAllParticipantsList() {
+            allParticipantListDiv.innerHTML = ''; // 既存のリストをクリア
+
+            for (let i = 1; i <= 30; i++) {
+                const name = `氏名${i}`;
+                const link = document.createElement('a');
+                link.href = `https://example.com/profile/${name}`; // ★★★ 遷移させたいURLのパターンを設定してください ★★★
+                link.textContent = name;
+                link.target = '_blank'; // 新しいタブで開く
+                allParticipantListDiv.appendChild(link);
+            }
         }
 
 
@@ -426,7 +515,7 @@
                     nameInput.value = '';
                     roomButtons.forEach(btn => btn.classList.remove('selected'));
                     selectedRoom = '';
-                    loadParticipantList(); // ★★★ 成功後、参加者リストを更新 ★★★
+                    loadCurrentParticipantList(); // 成功後、入室状況を更新
                 } else {
                     showMessage(`エラー: ${result.message}`, 'error');
                 }
@@ -440,8 +529,11 @@
         enterButton.addEventListener('click', () => executeAction('enter'));
         exitButton.addEventListener('click', () => executeAction('exit'));
 
-        // ページロード時に参加者リストを読み込む
-        document.addEventListener('DOMContentLoaded', loadParticipantList);
+        // ページロード時に各種リストを読み込む
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCurrentParticipantList(); // 入室状況を読み込む
+            generateAllParticipantsList(); // 参加者一覧を生成する
+        });
     </script>
 </body>
 </html>
