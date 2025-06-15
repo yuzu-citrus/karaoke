@@ -1,336 +1,131 @@
-    <!DOCTYPE html>
-    <html lang="ja">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>入退室システム</title>
-        <style>
-            /* CSSスタイルはここに直接記述 */
-            body {
-                font-family: 'Inter', Arial, sans-serif;
-                width: 100%; /* ポップアップの幅を100%に設定し、max-widthで制御 */
-                padding: 15px;
-                background-color: #f8f9fa;
-                margin: 0;
-                box-sizing: border-box; /* パディングを幅に含める */
+// GAS Webアプリケーションのコード
+
+// ★★★ あなたのスプレッドシートIDを直接記述します ★★★
+const SPREADSHEET_ID = '1bv0FVC9tHVTfwEnzLMlZwflXa_oeibwGir1fArQpmr8'; 
+
+const SHEET_NAME = 'シート1'; // 必要であればシート名を変更してください
+
+/**
+ * POSTリクエストを処理する関数（Webアプリケーションとして実行される）
+ * Chrome拡張機能からデータを受け取ります。
+ * @param {Object} e - イベントオブジェクト。POSTデータが含まれます。
+ * @returns {GoogleAppsScript.Content.TextOutput} - JSON形式のレスポンス
+ */
+function doPost(e) {
+  const responseOutput = ContentService.createTextOutput();
+  responseOutput.setMimeType(ContentService.MimeType.JSON);
+
+  const postDataContents = (e && e.postData) ? e.postData.contents : null;
+
+  if (!postDataContents) {
+    console.warn("doPostに空または無効なリクエストボディが届きました。イベントオブジェクト:", JSON.stringify(e));
+    return createJsonResponse(false, "リクエストボディが空または無効です。", 400);
+  }
+
+  let data;
+  try {
+    data = JSON.parse(postDataContents);
+  } catch (error) {
+    console.error("JSONパースエラー:", error);
+    return createJsonResponse(false, "リクエストボディのJSONパースに失敗しました。", 400);
+  }
+
+  const actionType = data.actionType; // アクションタイプをリクエストから取得
+
+  // スプレッドシートIDが正しいか最終確認
+  if (SPREADSHEET_ID !== '1bv0FVC9tHVTfwEnzLMlZwflXa_oeibwGir1fArQpmr8') {
+     console.error("GASコード内のスプレッドシートIDが間違っています。");
+     return createJsonResponse(false, "サーバー設定エラー: スプレッドシートIDが正しくありません。", 500);
+  }
+
+  try {
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = spreadsheet.getSheetByName(SHEET_NAME);
+
+    if (!sheet) {
+      return createJsonResponse(false, `シート名「${SHEET_NAME}」が見つかりません。`, 404);
+    }
+
+    if (actionType === 'enter') {
+      const name = data.name;
+      const room = data.room;
+      const currentTime = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy/MM/dd HH:mm:ss');
+
+      if (!name || !room) {
+        return createJsonResponse(false, "氏名、部屋番号は必須です。", 400);
+      }
+      
+      sheet.appendRow([name, room, currentTime, '', '']);
+      return createJsonResponse(true, `${name}様が${room}に入室しました。`);
+
+    } else if (actionType === 'exit') {
+      const name = data.name;
+      const room = data.room;
+      const currentTime = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy/MM/dd HH:mm:ss');
+
+      if (!name || !room) {
+        return createJsonResponse(false, "氏名、部屋番号は必須です。", 400);
+      }
+
+      const dataRange = sheet.getDataRange();
+      const values = dataRange.getValues();
+
+      let foundRowIndex = -1;
+      for (let i = values.length - 1; i >= 1; i--) {
+        const row = values[i];
+        if (row[0] === name && row[1] === room && (row[3] === '' || row[3] === undefined)) {
+          foundRowIndex = i + 1;
+          break;
+        }
+      }
+
+      if (foundRowIndex !== -1) {
+        sheet.getRange(foundRowIndex, 4).setValue(currentTime);
+        return createJsonResponse(true, `${name}様が${room}から退室しました。`);
+      } else {
+        return createJsonResponse(false, `${name}様が${room}に入室中の記録が見つかりません。`);
+      }
+    } else if (actionType === 'getList') { // ★★★ 追加：参加者リスト取得アクション ★★★
+        const dataRange = sheet.getDataRange();
+        const values = dataRange.getValues(); // 全データを取得
+
+        const activeParticipants = [];
+        // ヘッダー行をスキップ (values[0]がヘッダー)
+        for (let i = 1; i < values.length; i++) {
+            const row = values[i];
+            // 氏名(row[0]), 入室時刻(row[2]), 退室時刻(row[3])
+            // 退室時刻が空欄であり、入室時刻がある場合、入室中と判断
+            if (row[0] && row[2] && (row[3] === '' || row[3] === undefined)) {
+                activeParticipants.push(row[0]); // 氏名を追加
             }
+        }
+        // participantsというキーで参加者リストを返します
+        return createJsonResponse(true, "参加者リストを読み込みました。", 200, { participants: activeParticipants });
+    } else {
+      return createJsonResponse(false, "無効なアクションタイプです。", 400);
+    }
 
-            .container {
-                background-color: #ffffff;
-                padding: 20px;
-                border-radius: 10px;
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-                text-align: center;
-                width: 100%; /* コンテナの幅を100%に */
-                max-width: 380px; /* PCでのポップアップの最大幅 */
-                margin: 0 auto; /* 中央寄せ */
-                box-sizing: border-box;
-            }
+  } catch (error) {
+    if (error.message.includes("Can't find spreadsheet") || error.message.includes("Invalid argument: id")) {
+      console.error("スプレッドシートが見つからないか、IDが無効です:", SPREADSHEET_ID, error);
+      return createJsonResponse(false, `サーバー設定エラー: 指定されたスプレッドシートIDが無効か、見つかりません。`, 500);
+    }
+    console.error("スクリプト実行エラー:", error);
+    return createJsonResponse(false, `サーバーエラーが発生しました: ${error.message}`, 500);
+  }
+}
 
-            h1 {
-                color: #34495e;
-                font-size: 1.8em;
-                margin-bottom: 20px;
-                font-weight: 600;
-            }
-
-            .input-group {
-                margin-bottom: 18px;
-                text-align: left;
-            }
-
-            .input-group label {
-                display: block;
-                margin-bottom: 6px;
-                font-weight: bold;
-                color: #4a6572;
-                font-size: 0.95em;
-            }
-
-            .input-group input[type="text"] {
-                width: calc(100% - 18px); /* パディングとボーダーを考慮 */
-                padding: 10px;
-                border: 1px solid #dbe2e9;
-                border-radius: 6px;
-                font-size: 1em;
-                box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);
-            }
-
-            .room-buttons {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr); /* PCでは3列 */
-                gap: 8px;
-                margin-bottom: 20px;
-            }
-
-            .room-buttons button {
-                padding: 12px;
-                font-size: 1em;
-                border: 2px solid #5d9cec;
-                border-radius: 6px;
-                background-color: #e9f5ff;
-                color: #5d9cec;
-                cursor: pointer;
-                transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-            }
-
-            .room-buttons button.selected {
-                background-color: #5d9cec;
-                color: #fff;
-                border-color: #5d9cec;
-                transform: translateY(-1px);
-                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            }
-
-            .room-buttons button:hover:not(.selected) {
-                background-color: #d1e7f6;
-                border-color: #4a89dc;
-            }
-
-            .action-buttons {
-                display: flex;
-                justify-content: space-between;
-                gap: 10px;
-            }
-
-            .action-buttons button {
-                flex: 1;
-                padding: 15px;
-                font-size: 1.1em;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-                transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
-                font-weight: bold;
-                text-transform: uppercase;
-                letter-spacing: 0.2px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-            }
-
-            .action-buttons button:first-child {
-                background-color: #2ecc71; /* 入室 - 緑 */
-                color: white;
-            }
-
-            .action-buttons button:last-child {
-                background-color: #e74c3c; /* 退室 - 赤 */
-                color: white;
-            }
-
-            .action-buttons button:first-child:hover {
-                background-color: #27ae60;
-                transform: translateY(-1px);
-                box-shadow: 0 3px 6px rgba(0,0,0,0.12);
-            }
-
-            .action-buttons button:last-child:hover {
-                background-color: #c0392b;
-                transform: translateY(-1px);
-                box-shadow: 0 3px 6px rgba(0,0,0,0.12);
-            }
-
-            #message {
-                margin-top: 20px;
-                padding: 12px;
-                border-radius: 6px;
-                font-weight: bold;
-                display: none;
-                font-size: 0.95em;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-            }
-
-            #message.success {
-                background-color: #d4edda;
-                color: #155724;
-                border: 1px solid #badbcc;
-            }
-
-            #message.error {
-                background-color: #f8d7da;
-                color: #721c24;
-                border: 1px solid #f5c6cb;
-            }
-
-            #message.info {
-                background-color: #cce5ff;
-                color: #004085;
-                border: 1px solid #b8daff;
-            }
-
-            /* スマートフォン向けレスポンシブデザイン */
-            @media (max-width: 480px) { /* 画面幅が480px以下のデバイスに適用 */
-                body {
-                    padding: 10px; /* 全体のパディングを減らす */
-                }
-
-                .container {
-                    padding: 15px; /* コンテナのパディングを減らす */
-                }
-
-                h1 {
-                    font-size: 1.6em; /* タイトルのフォントサイズを調整 */
-                }
-
-                .input-group label {
-                    font-size: 0.9em;
-                }
-
-                .input-group input[type="text"] {
-                    font-size: 0.95em;
-                    padding: 8px;
-                }
-
-                .room-buttons {
-                    grid-template-columns: repeat(2, 1fr); /* 部屋番号ボタンを2列に */
-                    gap: 6px;
-                }
-
-                .room-buttons button {
-                    padding: 10px;
-                    font-size: 0.9em;
-                }
-
-                .action-buttons {
-                    flex-direction: column; /* 入室/退室ボタンを縦に並べる */
-                    gap: 8px;
-                }
-
-                .action-buttons button {
-                    width: 100%; /* ボタンの幅を100%に */
-                    padding: 12px;
-                    font-size: 1em;
-                }
-
-                #message {
-                    padding: 10px;
-                    font-size: 0.9em;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>入退室システム</h1>
-
-            <div class="input-group">
-                <label for="nameInput">氏名:</label>
-                <input type="text" id="nameInput" placeholder="氏名を入力してください" autocomplete="name">
-            </div>
-
-            <div class="input-group">
-                <label>部屋番号:</label>
-                <div class="room-buttons">
-                    <button data-room="A" aria-label="A部屋を選択">A部屋</button>
-                    <button data-room="B" aria-label="B部屋を選択">B部屋</button>
-                    <button data-room="C" aria-label="C部屋を選択">C部屋</button>
-                    <button data-room="D" aria-label="D部屋を選択">D部屋</button>
-                    <button data-room="E" aria-label="E部屋を選択">E部屋</button>
-                    <button data-room="F" aria-label="F部屋を選択">F部屋</button>
-                </div>
-            </div>
-
-            <div class="action-buttons">
-                <button id="enterButton" aria-label="入室">入室</button>
-                <button id="exitButton" aria-label="退室">退室</button>
-            </div>
-
-            <div id="message" role="alert" aria-live="polite"></div>
-        </div>
-
-        <script>
-            const nameInput = document.getElementById('nameInput');
-            const roomButtons = document.querySelectorAll('.room-buttons button');
-            const enterButton = document.getElementById('enterButton');
-            const exitButton = document.getElementById('exitButton');
-            const messageDiv = document.getElementById('message');
-
-            let selectedRoom = '';
-
-            // ★★★ あなたのGAS WebアプリケーションのURLをここに設定しました ★★★
-            const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwbkAyGmklfmldaggiWtuqQRm4lkmF2IiBRiTW_SjU8_kl-PyfuLp_u1tfjD77ReKNC8Q/exec'; 
-
-            // 部屋番号ボタンの選択状態を管理
-            roomButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    roomButtons.forEach(btn => btn.classList.remove('selected'));
-                    button.classList.add('selected');
-                    selectedRoom = button.dataset.room;
-                });
-            });
-
-            // ユーザーへのメッセージ表示関数
-            function showMessage(msg, type) {
-                messageDiv.textContent = msg;
-                messageDiv.className = ''; 
-                messageDiv.classList.add(type); 
-                messageDiv.style.display = 'block';
-
-                setTimeout(() => {
-                    messageDiv.style.display = 'none';
-                }, 5000); 
-            }
-
-            // 入退室アクションを実行するメイン関数
-            async function executeAction(actionType) {
-                const name = nameInput.value.trim();
-
-                // 入力値のバリデーション
-                if (!name) {
-                    showMessage('氏名を入力してください。', 'error');
-                    return;
-                }
-                if (!selectedRoom) {
-                    showMessage('部屋番号を選択してください。', 'error');
-                    return;
-                }
-                // GAS_WEB_APP_URLが正しいことを確認
-                if (GAS_WEB_APP_URL !== 'https://script.google.com/macros/s/AKfycbwbkAyGmklfmldaggiWtuqQRm4lkmF2IiBRiTW_SjU8_kl-PyfuLp_u1tfjD77ReKNC8Q/exec') {
-                    showMessage('GAS WebアプリケーションのURLが正しくありません。コードを編集してください。', 'error');
-                    return;
-                }
-
-                showMessage('処理中...', 'info'); // ロード中メッセージ
-
-                try {
-                    // コンソールに送信先のURLを表示して確認
-                    console.log('GAS Web App URL used:', GAS_WEB_APP_URL); 
-                    
-                    // GAS WebアプリケーションにデータをPOSTリクエストとして送信
-                    const response = await fetch(GAS_WEB_APP_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            name: name,
-                            room: selectedRoom,
-                            actionType: actionType
-                        })
-                    });
-
-                    // レスポンスをJSONとしてパース
-                    const result = await response.json();
-
-                    // GASからのレスポンスに基づいてメッセージを表示
-                    if (result.success) {
-                        showMessage(result.message, 'success');
-                        nameInput.value = '';
-                        roomButtons.forEach(btn => btn.classList.remove('selected'));
-                        selectedRoom = '';
-                    } else {
-                        showMessage(`エラー: ${result.message}`, 'error');
-                    }
-                } catch (error) {
-                    console.error('GAS Webアプリケーションとの通信に失敗しました:', error);
-                    showMessage('サーバーとの通信に失敗しました。ネットワーク接続またはGAS Webアプリケーションの稼働状況を確認してください。', 'error');
-                }
-            }
-
-            // ボタンにイベントリスナーを設定
-            enterButton.addEventListener('click', () => executeAction('enter'));
-            exitButton.addEventListener('click', () => executeAction('exit'));
-        </script>
-    </body>
-    </html>
-    
+/**
+ * JSON形式のレスポンスを作成するヘルパー関数
+ * optionalDataを引数として受け取り、JSONに含めるように変更しました。
+ * @param {boolean} success - 処理が成功したかどうか
+ * @param {string} message - ユーザーへのメッセージ
+ * @param {number} statusCode - HTTPステータスコード (任意, GASでは直接設定できないがログ用)
+ * @param {Object} optionalData - JSONレスポンスに含める追加のデータ (例: { participants: [...] })
+ * @returns {GoogleAppsScript.Content.TextOutput}
+ */
+function createJsonResponse(success, message, statusCode = 200, optionalData = {}) {
+  const json = JSON.stringify({ success: success, message: message, statusCode: statusCode, ...optionalData });
+  return ContentService.createTextOutput(json)
+                       .setMimeType(ContentService.MimeType.JSON);
+}
