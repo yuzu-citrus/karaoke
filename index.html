@@ -22,7 +22,7 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
             width: 100%; /* コンテナの幅を100%に */
-            max-width: 400px; /* PCでのポップアップの最大幅 */
+            max-width: 420px; /* ★変更: ポップアップの最大幅を少し広げる */
             margin: 0 auto; /* 中央寄せ */
             box-sizing: border-box;
         }
@@ -47,21 +47,15 @@
             line-height: 1.5em; /* 行の高さを調整して中央に */
         }
 
-        /* ★追加：span要素を常にdisplay: inline-block;に、min-widthも追加 */
-        .welcome-message #welcomeMessageText {
-            display: inline-block; 
-            min-width: 1px; /* scrollWidthが0になるのを防ぐ */
-        }
-
         /* マーキーアニメーションのキーフレーム定義 */
         @keyframes marquee {
-            /* ★変更：テキストが右から完全に入り、左へ完全に消えるように */
-            0% { transform: translateX(100%); } /* 親要素の右端から開始 */
-            100% { transform: translateX(calc(-100% - var(--text-width-px))); } /* テキスト自身の幅+親要素の幅だけ移動 */
+            0% { transform: translateX(100%); } /* 右端から開始 */
+            100% { transform: translateX(calc(-100% - var(--text-width-px))); } /* 左端までスクロールし、テキストの幅分だけさらに移動 */
         }
 
         /* アニメーションを適用するクラス */
         .welcome-message.marquee-active #welcomeMessageText {
+            display: inline-block; /* アニメーションのために必要 */
             animation: marquee var(--marquee-duration) linear infinite;
         }
 
@@ -89,7 +83,7 @@
 
         .room-buttons {
             display: grid;
-            grid-template-columns: repeat(3, 1fr) !important; /* PCでは3列 */
+            grid-template-columns: repeat(3, 1fr) !important; /* PCでは3列を強制 */
             gap: 5px; /* ボタン間の間隔を狭める */
             margin-bottom: 20px;
         }
@@ -325,7 +319,8 @@
             }
 
             .room-buttons {
-                grid-template-columns: repeat(2, 1fr); /* 部屋番号ボタンを2列に (画面幅によっては3列が厳しいため) */
+                /* ★変更：メディアクエリ内の2列設定を削除し、常に3列を維持 */
+                /* grid-template-columns: repeat(2, 1fr); */ 
                 gap: 6px;
             }
 
