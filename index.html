@@ -22,7 +22,7 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
             width: 100%; /* コンテナの幅を100%に */
-            max-width: 420px; /* ★変更: ポップアップの最大幅を少し広げる */
+            max-width: 420px; /* ポップアップの最大幅を少し広げる */
             margin: 0 auto; /* 中央寄せ */
             box-sizing: border-box;
         }
@@ -38,10 +38,10 @@
         .welcome-message {
             font-size: 0.85em; /* 小さいフォントサイズ */
             color: #555;
-            margin-bottom: 30px; 
+            margin-bottom: 30px;
             white-space: nowrap; /* テキストを折り返さない */
-            overflow: hidden;    /* はみ出した部分を隠す */
-            text-align: left;    /* 左寄せ */
+            overflow: hidden;
+            text-align: left;
             position: relative; /* アニメーションの基準点 */
             box-sizing: border-box;
             line-height: 1.5em; /* 行の高さを調整して中央に */
@@ -186,7 +186,7 @@
         /* 新しい区切り線スタイル */
         .section-divider {
             border: none; /* デフォルトの線を無効化 */
-            border-top: 1px solid #eee; 
+            border-top: 1px solid #eee;
             margin: 20px 0; /* 上下の余白 */
         }
         /* 歓迎メッセージ直後の線にのみ適用するマージン */
@@ -195,7 +195,6 @@
             margin-bottom: 25px; /* 氏名入力欄への距離 */
         }
 
-
         /* 入室状況セクション */
         .status-list-section {
             margin-top: 30px; /* 線との距離を保つ */
@@ -203,7 +202,7 @@
             border-top: none;
         }
 
-        .status-list-section h2 {
+        .status-list-section h2, .personal-time-section h2, .all-participants-list-section h2 {
             font-size: 1em;
             color: #34495e;
             margin-bottom: 15px;
@@ -241,14 +240,6 @@
             border-top: none;
         }
 
-        .all-participants-list-section h2 {
-            font-size: 1em;
-            color: #34495e;
-            margin-bottom: 15px;
-            text-align: left;
-            font-weight: bold;
-        }
-
         .all-participants-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr); /* 常に2列表示 */
@@ -281,8 +272,37 @@
             padding-top: 15px;
             border-top: 1px solid #eee;
             color: #777;
-            font-size: 0.75em; 
+            font-size: 0.75em;
             text-align: center;
+        }
+
+        /* 個人の滞在時間セクションのスタイル */
+        .personal-time-section {
+            margin-top: 30px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fcfcfc;
+            text-align: left;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .personal-time-section p {
+            font-size: 1.1em;
+            margin: 8px 0;
+        }
+        #current-local-time {
+            font-weight: bold;
+            color: #28a745;
+        }
+        #my-entry-time-display {
+            font-weight: bold;
+            color: #6c757d;
+        }
+        #my-stay-duration-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #dc3545;
         }
 
 
@@ -319,8 +339,7 @@
             }
 
             .room-buttons {
-                /* ★変更：メディアクエリ内の2列設定を削除し、常に3列を維持 */
-                /* grid-template-columns: repeat(2, 1fr); */ 
+                /* grid-template-columns: repeat(2, 1fr); */ /* ここは常に3列を維持 */
                 gap: 6px;
             }
 
@@ -349,11 +368,11 @@
                 margin: 15px 0;
             }
 
-            .status-list-section, .all-participants-list-section {
+            .status-list-section, .all-participants-list-section, .personal-time-section {
                 margin-top: 20px;
                 padding-top: 0;
             }
-            .status-list-section h2, .all-participants-list-section h2 {
+            .status-list-section h2, .personal-time-section h2, .all-participants-list-section h2 {
                 font-size: 0.95em;
             }
             #currentParticipantList {
@@ -370,6 +389,9 @@
                 margin-top: 20px;
                 padding-top: 10px;
                 font-size: 0.7em;
+            }
+            #my-stay-duration-display {
+                font-size: 1.3em;
             }
         }
     </style>
@@ -408,11 +430,20 @@
 
         <div id="message" role="alert" aria-live="polite"></div>
 
+        <!-- 個人の滞在時間セクションの追加 -->
+        <hr class="section-divider">
+        <div class="personal-time-section">
+            <h2>あなたの滞在状況</h2>
+            <p>現在の時刻: <span id="current-local-time"></span></p>
+            <p>あなたの入室時刻: <span id="my-entry-time-display">記録なし</span></p>
+            <p>あなたの滞在時間: <span id="my-stay-duration-display">00時間00分00秒</span></p>
+        </div>
+
         <!-- 退室ボタンと入室状況の間に線を追加 -->
         <hr class="section-divider">
 
         <div class="status-list-section">
-            <h2>入室状況</h2>
+            <h2>入室状況 (このブラウザのみ)</h2>
             <div id="currentParticipantList">
                 <div>現在入室中の参加者はいません。</div>
             </div>
@@ -442,10 +473,14 @@
         const allParticipantListDiv = document.getElementById('allParticipantList');
         const welcomeMessageText = document.getElementById('welcomeMessageText');
 
-        let selectedRoom = '';
+        // 個人用時計の表示要素
+        const currentLocalTimeSpan = document.getElementById('current-local-time');
+        const myEntryTimeDisplaySpan = document.getElementById('my-entry-time-display');
+        const myStayDurationDisplaySpan = document.getElementById('my-stay-duration-display');
 
-        // ★★★ あなたのGAS WebアプリケーションのURLをここに設定しました ★★★
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwbkAyGmklfmldaggiWtuqQRm4lkmF2IiBRiTW_SjU8_kl-PyfuLp_u1tfjD77ReKNC8Q/exec'; 
+        let selectedRoom = '';
+        let personalStayTimerInterval; // 個人の滞在時間更新用setInterval ID
+        let currentParticipants = []; // このブラウザで入室中の参加者データを保持する配列
 
         // 部屋番号ボタンの選択状態を管理
         roomButtons.forEach(button => {
@@ -459,54 +494,53 @@
         // ユーザーへのメッセージ表示関数
         function showMessage(msg, type) {
             messageDiv.textContent = msg;
-            messageDiv.className = ''; 
-            messageDiv.classList.add(type); 
+            messageDiv.className = '';
+            messageDiv.classList.add(type);
             messageDiv.style.display = 'block';
 
             setTimeout(() => {
                 messageDiv.style.display = 'none';
-            }, 5000); 
+            }, 5000);
         }
 
         /**
-         * 現在入室中の参加者リストをGASから取得し、UIを更新する
+         * localStorageから現在の入室者リストを読み込む
+         * @returns {Array} 参加者オブジェクトの配列
          */
-        async function loadCurrentParticipantList() {
-            showMessage('入室状況を読み込み中...', 'info'); 
+        function loadCurrentParticipantsFromLocalStorage() {
             try {
-                const response = await fetch(GAS_WEB_APP_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ actionType: 'getList' })
-                });
-                const result = await response.json();
-                if (result.success) {
-                    updateCurrentParticipantListUI(result.participants);
-                    setTimeout(() => showMessage('入室状況を更新しました。', 'success'), 100);
-                } else {
-                    showMessage(`入室状況の取得エラー: ${result.message}`, 'error');
-                }
-            } catch (error) {
-                console.error('入室状況の通信エラー:', error);
-                showMessage('入室状況の取得に失敗しました。ネットワーク接続を確認してください。', 'error');
+                const data = localStorage.getItem('currentParticipantsData');
+                return data ? JSON.parse(data) : [];
+            } catch (e) {
+                console.error("Failed to parse currentParticipantsData from localStorage:", e);
+                return [];
             }
         }
 
         /**
-         * 取得した入室中の参加者リストでUIを更新する
-         * @param {Array<string>} participants - 入室中の参加者の名前の配列
+         * 現在の入室者リストをlocalStorageに保存する
+         * @param {Array} participants - 保存する参加者オブジェクトの配列
          */
-        function updateCurrentParticipantListUI(participants) {
+        function saveCurrentParticipantsToLocalStorage(participants) {
+            localStorage.setItem('currentParticipantsData', JSON.stringify(participants));
+        }
+
+        /**
+         * 入室中の参加者リストをUIに表示する
+         */
+        function updateCurrentParticipantListUI() {
             currentParticipantListDiv.innerHTML = ''; // 既存のリストをクリア
 
-            if (!participants || participants.length === 0) {
+            if (!currentParticipants || currentParticipants.length === 0) {
                 currentParticipantListDiv.innerHTML = '<div>現在入室中の参加者はいません。</div>';
                 return;
             }
 
-            participants.forEach(name => {
+            currentParticipants.forEach(p => {
                 const div = document.createElement('div');
-                div.textContent = name;
+                const entryDate = new Date(p.entryTime);
+                const timeString = entryDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // 時分のみ表示
+                div.textContent = `${p.name} (${p.room}部屋) - ${timeString} 入室`;
                 currentParticipantListDiv.appendChild(div);
             });
         }
@@ -518,12 +552,43 @@
             allParticipantListDiv.innerHTML = ''; // 既存のリストをクリア
 
             for (let i = 1; i <= 30; i++) {
-                const name = `氏名${i}`;
+                const name = `氏名${String(i).padStart(2, '0')}`; // "氏名01", "氏名02" のように整形
                 const link = document.createElement('a');
-                link.href = `https://example.com/profile/${name}`; // ★★★ 遷移させたいURLのパターンを設定してください ★★★
+                // ここに遷移させたいURLのパターンを設定してください
+                link.href = `https://example.com/profile/${name}`; 
                 link.textContent = name;
                 link.target = '_blank'; // 新しいタブで開く
                 allParticipantListDiv.appendChild(link);
+            }
+        }
+
+        /**
+         * 個人の現在の時刻と滞在時間を更新する
+         */
+        function updatePersonalStayDurationDisplay() {
+            const currentTime = new Date();
+            currentLocalTimeSpan.textContent = currentTime.toLocaleTimeString(); // 現在時刻を常に表示
+
+            const myEntryTime = localStorage.getItem('myEntryTime');
+            if (myEntryTime) {
+                const entryTimestamp = parseInt(myEntryTime);
+                const entryDate = new Date(entryTimestamp);
+                myEntryTimeDisplaySpan.textContent = entryDate.toLocaleTimeString(); // あなたの入室時刻
+
+                const durationMs = currentTime.getTime() - entryTimestamp;
+                const seconds = Math.floor((durationMs / 1000) % 60);
+                const minutes = Math.floor((durationMs / (1000 * 60)) % 60);
+                const hours = Math.floor((durationMs / (1000 * 60 * 60)) % 24);
+
+                const formattedDuration =
+                    String(hours).padStart(2, '0') + '時間' +
+                    String(minutes).padStart(2, '0') + '分' +
+                    String(seconds).padStart(2, '0') + '秒';
+                myStayDurationDisplaySpan.textContent = formattedDuration;
+            } else {
+                // 入室していない場合
+                myEntryTimeDisplaySpan.textContent = '記録なし';
+                myStayDurationDisplaySpan.textContent = '00時間00分00秒';
             }
         }
 
@@ -570,62 +635,68 @@
                 showMessage('部屋番号を選択してください。', 'error');
                 return;
             }
-            // GAS_WEB_APP_URLが正しいことを確認
-            if (GAS_WEB_APP_URL !== 'https://script.google.com/macros/s/AKfycbwbkAyGmklfmldaggiWtuqQRm4lkmF2IiBRiTW_SjU8_kl-PyfuLp_u1tfjD77ReKNC8Q/exec') {
-                showMessage('GAS WebアプリケーションのURLが正しくありません。コードを編集してください。', 'error');
-                return;
-            }
 
-            showMessage('処理中...', 'info'); // ロード中メッセージ
+            let message = '';
+            let messageType = 'info';
 
-            try {
-                // コンソールに送信先のURLを表示して確認
-                console.log('GAS Web App URL used:', GAS_WEB_APP_URL); 
-                
-                // GAS WebアプリケーションにデータをPOSTリクエストとして送信
-                const response = await fetch(GAS_WEB_APP_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        name: name,
-                        room: selectedRoom,
-                        actionType: actionType
-                    })
-                });
+            // 現在の入室者リストをローカルストレージから取得
+            currentParticipants = loadCurrentParticipantsFromLocalStorage();
 
-                // レスポンスをJSONとしてパース
-                const result = await response.json();
+            // ユーザーがリストに既に存在するかどうかを確認
+            const existingParticipantIndex = currentParticipants.findIndex(p => p.name === name);
 
-                // GASからのレスポンスに基づいてメッセージを表示
-                if (result.success) {
-                    showMessage(result.message, 'success');
-                    nameInput.value = '';
-                    roomButtons.forEach(btn => btn.classList.remove('selected'));
-                    selectedRoom = '';
-                    loadCurrentParticipantList(); // 成功後、入室状況を更新
+            if (actionType === 'enter') {
+                if (existingParticipantIndex === -1) {
+                    // 新規入室
+                    const entryTime = Date.now();
+                    currentParticipants.push({ name: name, room: selectedRoom, entryTime: entryTime });
+                    localStorage.setItem('myEntryTime', entryTime.toString()); // 個人の入室時刻を記録
+                    message = `${name}さんが${selectedRoom}部屋に入室しました。`;
+                    messageType = 'success';
                 } else {
-                    showMessage(`エラー: ${result.message}`, 'error');
+                    // 既にリストにいる場合
+                    message = `${name}さんは既に入室中です。`;
+                    messageType = 'info';
                 }
-            } catch (error) {
-                console.error('GAS Webアプリケーションとの通信に失敗しました:', error);
-                showMessage('サーバーとの通信に失敗しました。ネットワーク接続またはGAS Webアプリケーションの稼働状況を確認してください。', 'error');
+            } else if (actionType === 'exit') {
+                if (existingParticipantIndex !== -1) {
+                    // 退出処理
+                    currentParticipants.splice(existingParticipantIndex, 1); // リストから削除
+                    localStorage.removeItem('myEntryTime'); // 個人の入室時刻をクリア
+                    message = `${name}さんが${selectedRoom}部屋から退室しました。`;
+                    messageType = 'success';
+                } else {
+                    // 既に入室していない場合
+                    message = `${name}さんは入室していません。`;
+                    messageType = 'info';
+                }
             }
+
+            saveCurrentParticipantsToLocalStorage(currentParticipants); // 更新されたリストを保存
+
+            showMessage(message, messageType); // 結果メッセージを表示
+            nameInput.value = ''; // 氏名入力欄をクリア
+            roomButtons.forEach(btn => btn.classList.remove('selected')); // 部屋選択をリセット
+            selectedRoom = '';
+
+            updateCurrentParticipantListUI(); // 入室状況リストを更新
+            updatePersonalStayDurationDisplay(); // 個人の滞在時間表示を更新 (退室時にリセットされる)
         }
 
         // ボタンにイベントリスナーを設定
         enterButton.addEventListener('click', () => executeAction('enter'));
         exitButton.addEventListener('click', () => executeAction('exit'));
 
-        // ページロード時に各種リストを読み込む
+        // ページロード時に各種リストと時計を初期化
         document.addEventListener('DOMContentLoaded', () => {
-            loadCurrentParticipantList(); // 入室状況を読み込む
+            currentParticipants = loadCurrentParticipantsFromLocalStorage(); // 入室状況をlocalStorageから読み込む
+            updateCurrentParticipantListUI(); // 入室状況をUIに表示
             generateAllParticipantsList(); // 参加者一覧を生成する
             setupWelcomeMessageAnimation(); // ウェルカムメッセージのアニメーションをセットアップ
 
-            // ウィンドウサイズ変更時にアニメーションを再評価 (ポップアップのサイズは固定なので通常は不要ですが、念のため残しておきます)
-            // window.addEventListener('resize', setupWelcomeMessageAnimation);
+            // 個人の滞在時間タイマーを開始
+            personalStayTimerInterval = setInterval(updatePersonalStayDurationDisplay, 1000);
+            updatePersonalStayDurationDisplay(); // 初回表示
         });
     </script>
 </body>
