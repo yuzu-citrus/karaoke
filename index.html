@@ -47,15 +47,19 @@
             line-height: 1.5em; /* 行の高さを調整して中央に */
         }
 
+        /* ★変更：span要素を常にdisplay: inline-block;に */
+        .welcome-message #welcomeMessageText {
+            display: inline-block; 
+        }
+
         /* マーキーアニメーションのキーフレーム定義 */
         @keyframes marquee {
-            0% { transform: translateX(0%); }
-            100% { transform: translateX(var(--marquee-distance)); } /* 動的に距離を設定 */
+            0% { transform: translateX(100%); } /* 右端から開始 */
+            100% { transform: translateX(calc(-100% - var(--text-width-px))); } /* 左端までスクロールし、テキストの幅分だけさらに移動 */
         }
 
         /* アニメーションを適用するクラス */
         .welcome-message.marquee-active #welcomeMessageText {
-            display: inline-block; /* アニメーションのために必要 */
             animation: marquee var(--marquee-duration) linear infinite;
         }
 
@@ -281,7 +285,7 @@
             padding-top: 15px;
             border-top: 1px solid #eee;
             color: #777;
-            font-size: 0.75em; /* 小さいフォントサイズ */
+            font-size: 0.75em; 
             text-align: center;
         }
 
@@ -319,7 +323,7 @@
             }
 
             .room-buttons {
-                grid-template-columns: repeat(2, 1fr); /* 部屋番号ボタンを2列に */
+                grid-template-columns: repeat(2, 1fr); /* 部屋番号ボタンを2列に (画面幅によっては3列が厳しいため) */
                 gap: 6px;
             }
 
