@@ -1,635 +1,632 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>入退室システム</title>
-    <style>
-        /* CSSスタイルはここに直接記述 */
-        body {
-            font-family: 'Inter', Arial, sans-serif;
-            width: 100%; /* ポップアップの幅を100%に設定し、max-widthで制御 */
-            padding: 15px;
-            background-color: #f8f9fa;
-            margin: 0;
-            box-sizing: border-box; /* パディングを幅に含める */
-        }
-
-        .container {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 100%; /* コンテナの幅を100%に */
-            max-width: 400px; /* PCでのポップアップの最大幅 */
-            margin: 0 auto; /* 中央寄せ */
-            box-sizing: border-box;
-        }
-
-        h1 {
-            color: #34495e;
-            font-size: 1.8em;
-            margin-bottom: 5px; /* メッセージとの間隔を調整 */
-            font-weight: 600;
-        }
-
-        /* 歓迎メッセージのスタイル */
-        .welcome-message {
-            font-size: 0.85em; /* 小さいフォントサイズ */
-            color: #555;
-            margin-bottom: 30px; 
-            white-space: nowrap; /* テキストを折り返さない */
-            overflow: hidden;    /* はみ出した部分を隠す */
-            text-align: left;    /* 左寄せ */
-            position: relative; /* アニメーションの基準点 */
-            box-sizing: border-box;
-            line-height: 1.5em; /* 行の高さを調整して中央に */
-        }
-
-        /* ★変更：span要素を常にdisplay: inline-block;に */
-        .welcome-message #welcomeMessageText {
-            display: inline-block; 
-        }
-
-        /* マーキーアニメーションのキーフレーム定義 */
-        @keyframes marquee {
-            0% { transform: translateX(100%); } /* 右端から開始 */
-            100% { transform: translateX(calc(-100% - var(--text-width-px))); } /* 左端までスクロールし、テキストの幅分だけさらに移動 */
-        }
-
-        /* アニメーションを適用するクラス */
-        .welcome-message.marquee-active #welcomeMessageText {
-            animation: marquee var(--marquee-duration) linear infinite;
-        }
-
-        .input-group {
-            margin-bottom: 18px;
-            text-align: left;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: bold;
-            color: #4a6572;
-            font-size: 0.95em;
-        }
-
-        .input-group input[type="text"] {
-            width: calc(100% - 18px); /* パディングとボーダーを考慮 */
-            padding: 10px;
-            border: 1px solid #dbe2e9;
-            border-radius: 6px;
-            font-size: 1em;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);
-        }
-
-        .room-buttons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr) !important; /* PCでは3列 */
-            gap: 5px; /* ボタン間の間隔を狭める */
-            margin-bottom: 20px;
-        }
-
-        .room-buttons button {
-            padding: 12px;
-            font-size: 1em;
-            border: 2px solid #a8e6cf; /* 薄い黄緑色のボーダー */
-            border-radius: 6px;
-            background-color: #e0ffe0; /* 薄い黄緑色の背景 */
-            color: #2e8b57; /* 濃いめの緑文字 */
-            cursor: pointer;
-            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        }
-
-        .room-buttons button.selected {
-            background-color: #4CAF50; /* 緑色 */
-            color: #fff; /* 文字色を白に */
-            border-color: #388E3C; /* 少し濃い緑のボーダー */
-            transform: translateY(-1px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .room-buttons button:hover:not(.selected) {
-            background-color: #c9f0dd; /* ホバー時の少し濃い黄緑 */
-            border-color: #88ccaa;
-        }
-
-        .action-buttons {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .action-buttons button {
-            flex: 1;
-            padding: 15px;
-            font-size: 1.1em;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.2px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-        }
-
-        .action-buttons button:first-child {
-            background-color: #007bff; /* 入室 - 青色 */
-            color: white;
-        }
-
-        .action-buttons button:last-child {
-            background-color: #e74c3c; /* 退室 - 赤色 */
-            color: white;
-        }
-
-        .action-buttons button:first-child:hover {
-            background-color: #0056b3; /* 青色のホバー */
-            transform: translateY(-1px);
-            box-shadow: 0 3px 6px rgba(0,0,0,0.12);
-        }
-
-        .action-buttons button:last-child:hover {
-            background-color: #c0392b;
-            transform: translateY(-1px);
-            box-shadow: 0 3px 6px rgba(0,0,0,0.12);
-        }
-
-        #message {
-            margin-top: 20px;
-            padding: 12px;
-            border-radius: 6px;
-            font-weight: bold;
-            display: none;
-            font-size: 0.95em;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        }
-
-        #message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #badbcc;
-        }
-
-        #message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        #message.info {
-            background-color: #cce5ff;
-            color: #004085;
-            border: 1px solid #b8daff;
-        }
-
-        /* 新しい区切り線スタイル */
-        .section-divider {
-            border: none; /* デフォルトの線を無効化 */
-            border-top: 1px solid #eee; 
-            margin: 20px 0; /* 上下の余白 */
-        }
-        /* 歓迎メッセージ直後の線にのみ適用するマージン */
-        .divider-after-welcome {
-            margin-top: 10px; /* 歓迎メッセージからの距離 */
-            margin-bottom: 25px; /* 氏名入力欄への距離 */
-        }
-
-
-        /* 入室状況セクション */
-        .status-list-section {
-            margin-top: 30px; /* 線との距離を保つ */
-            padding-top: 0;
-            border-top: none;
-        }
-
-        .status-list-section h2 {
-            font-size: 1em;
-            color: #34495e;
-            margin-bottom: 15px;
-            text-align: left;
-            font-weight: bold;
-        }
-
-        #currentParticipantList {
-            margin-top: 0;
-            padding: 10px;
-            border: 1px solid #dbe2e9;
-            border-radius: 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            background-color: #f9f9f9;
-            text-align: left;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
-        }
-
-        #currentParticipantList div {
-            padding: 6px 0;
-            border-bottom: 1px dashed #e0e0e0;
-            color: #555;
-            font-size: 0.95em;
-        }
-
-        #currentParticipantList div:last-child {
-            border-bottom: none;
-        }
-
-        /* 参加者一覧セクションの追加スタイル */
-        .all-participants-list-section {
-            margin-top: 30px; /* 入室状況リストとの距離 */
-            padding-top: 0;
-            border-top: none;
-        }
-
-        .all-participants-list-section h2 {
-            font-size: 1em;
-            color: #34495e;
-            margin-bottom: 15px;
-            text-align: left;
-            font-weight: bold;
-        }
-
-        .all-participants-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 常に2列表示 */
-            gap: 10px;
-            padding: 10px;
-            border: 1px solid #dbe2e9;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
-        }
-
-        .all-participants-grid a {
-            display: block;
-            padding: 5px 0;
-            color: #007bff;
-            text-decoration: none;
-            font-size: 0.95em;
-            text-align: left;
-            transition: color 0.2s ease;
-        }
-
-        .all-participants-grid a:hover {
-            color: #0056b3;
-            text-decoration: underline;
-        }
-
-        /* フッターセクションのスタイル */
-        .footer-section {
-            margin-top: 30px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
-            color: #777;
-            font-size: 0.75em; 
-            text-align: center;
-        }
-
-
-        /* スマートフォン向けレスポンシブデザイン */
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-
-            .container {
-                padding: 15px;
-            }
-
-            h1 {
-                font-size: 1.6em;
-            }
-
-            .welcome-message {
-                font-size: 0.8em;
-                margin-bottom: 20px; /* スマホでは少し狭くする */
-            }
-            .divider-after-welcome {
-                margin-top: 8px;
-                margin-bottom: 20px;
-            }
-
-            .input-group label {
-                font-size: 0.9em;
-            }
-
-            .input-group input[type="text"] {
-                font-size: 0.95em;
-                padding: 8px;
-            }
-
-            .room-buttons {
-                grid-template-columns: repeat(2, 1fr); /* 部屋番号ボタンを2列に (画面幅によっては3列が厳しいため) */
-                gap: 6px;
-            }
-
-            .room-buttons button {
-                padding: 10px;
-                font-size: 0.9em;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .action-buttons button {
-                width: 100%;
-                padding: 12px;
-                font-size: 1em;
-            }
-
-            #message {
-                padding: 10px;
-                font-size: 0.9em;
-            }
-
-            .section-divider {
-                margin: 15px 0;
-            }
-
-            .status-list-section, .all-participants-list-section {
-                margin-top: 20px;
-                padding-top: 0;
-            }
-            .status-list-section h2, .all-participants-list-section h2 {
-                font-size: 0.95em;
-            }
-            #currentParticipantList {
-                max-height: 150px;
-            }
-            #currentParticipantList div {
-                font-size: 0.9em;
-                padding: 5px 0;
-            }
-            .all-participants-grid a {
-                font-size: 0.9em;
-            }
-            .footer-section {
-                margin-top: 20px;
-                padding-top: 10px;
-                font-size: 0.7em;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>入退室システム</h1>
-        <!-- 歓迎メッセージの追加 -->
-        <p class="welcome-message">
-            <span id="welcomeMessageText">〇月〇日(〇)／ジャンカラ 〇〇〇店／11時～19時開催🎤本日は、〇〇〇〇〇会にご参加いただきありがとうございます。</span>
-        </p>
-        <!-- 歓迎メッセージと氏名入力欄の間に線を追加 -->
-        <hr class="section-divider divider-after-welcome">
-
-        <div class="input-group">
-            <label for="nameInput">氏名:</label>
-            <input type="text" id="nameInput" placeholder="氏名を入力してください" autocomplete="name">
-        </div>
-
-        <div class="input-group">
-            <label>部屋番号:</label>
-            <div class="room-buttons">
-                <button data-room="A" aria-label="A部屋を選択">A部屋</button>
-                <button data-room="B" aria-label="B部屋を選択">B部屋</button>
-                <button data-room="C" aria-label="C部屋を選択">C部屋</button>
-                <button data-room="D" aria-label="D部屋を選択">D部屋</button>
-                <button data-room="E" aria-label="E部屋を選択">E部屋</button>
-                <button data-room="F" aria-label="F部屋を選択">F部屋</button>
-            </div>
-        </div>
-
-        <div class="action-buttons">
-            <button id="enterButton" aria-label="入室">入室</button>
-            <button id="exitButton" aria-label="退室">退室</button>
-        </div>
-
-        <div id="message" role="alert" aria-live="polite"></div>
-
-        <!-- 退室ボタンと入室状況の間に線を追加 -->
-        <hr class="section-divider">
-
-        <div class="status-list-section">
-            <h2>入室状況</h2>
-            <div id="currentParticipantList">
-                <div>現在入室中の参加者はいません。</div>
-            </div>
-        </div>
-
-        <!-- 参加者一覧セクションの追加 -->
-        <div class="all-participants-list-section">
-            <h2>参加者一覧</h2>
-            <div id="allParticipantList" class="all-participants-grid">
-                <!-- JavaScriptでここに30名の名前が生成されます -->
-            </div>
-        </div>
-
-        <!-- フッターセクションの追加 -->
-        <div class="footer-section">
-            &copy; 2025 株式会社 柚子ポテト
-        </div>
-    </div>
-
-    <script>
-        const nameInput = document.getElementById('nameInput');
-        const roomButtons = document.querySelectorAll('.room-buttons button');
-        const enterButton = document.getElementById('enterButton');
-        const exitButton = document.getElementById('exitButton');
-        const messageDiv = document.getElementById('message');
-        const currentParticipantListDiv = document.getElementById('currentParticipantList');
-        const allParticipantListDiv = document.getElementById('allParticipantList');
-        const welcomeMessageText = document.getElementById('welcomeMessageText');
-
-        let selectedRoom = '';
-
-        // ★★★ あなたのGAS WebアプリケーションのURLをここに設定しました ★★★
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwbkAyGmklfmldaggiWtuqQRm4lkmF2IiBRiTW_SjU8_kl-PyfuLp_u1tfjD77ReKNC8Q/exec'; 
-
-        // 部屋番号ボタンの選択状態を管理
-        roomButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                roomButtons.forEach(btn => btn.classList.remove('selected'));
-                button.classList.add('selected');
-                selectedRoom = button.dataset.room;
-            });
-        });
-
-        // ユーザーへのメッセージ表示関数
-        function showMessage(msg, type) {
-            messageDiv.textContent = msg;
-            messageDiv.className = ''; 
-            messageDiv.classList.add(type); 
-            messageDiv.style.display = 'block';
-
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 5000); 
-        }
-
-        /**
-         * 現在入室中の参加者リストをGASから取得し、UIを更新する
-         */
-        async function loadCurrentParticipantList() {
-            showMessage('入室状況を読み込み中...', 'info'); 
-            try {
-                const response = await fetch(GAS_WEB_APP_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ actionType: 'getList' })
-                });
-                const result = await response.json();
-                if (result.success) {
-                    updateCurrentParticipantListUI(result.participants);
-                    setTimeout(() => showMessage('入室状況を更新しました。', 'success'), 100);
-                } else {
-                    showMessage(`入室状況の取得エラー: ${result.message}`, 'error');
+        <!DOCTYPE html>
+        <html lang="ja">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>入退室システム</title>
+            <style>
+                /* CSSスタイルはここに直接記述 */
+                body {
+                    font-family: 'Inter', Arial, sans-serif;
+                    width: 100%; /* ポップアップの幅を100%に設定し、max-widthで制御 */
+                    padding: 15px;
+                    background-color: #f8f9fa;
+                    margin: 0;
+                    box-sizing: border-box; /* パディングを幅に含める */
                 }
-            } catch (error) {
-                console.error('入室状況の通信エラー:', error);
-                showMessage('入室状況の取得に失敗しました。ネットワーク接続を確認してください。', 'error');
-            }
-        }
 
-        /**
-         * 取得した入室中の参加者リストでUIを更新する
-         * @param {Array<string>} participants - 入室中の参加者の名前の配列
-         */
-        function updateCurrentParticipantListUI(participants) {
-            currentParticipantListDiv.innerHTML = ''; // 既存のリストをクリア
+                .container {
+                    background-color: #ffffff;
+                    padding: 20px;
+                    border-radius: 10px;
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                    text-align: center;
+                    width: 100%; /* コンテナの幅を100%に */
+                    max-width: 400px; /* PCでのポップアップの最大幅 */
+                    margin: 0 auto; /* 中央寄せ */
+                    box-sizing: border-box;
+                }
 
-            if (!participants || participants.length === 0) {
-                currentParticipantListDiv.innerHTML = '<div>現在入室中の参加者はいません。</div>';
-                return;
-            }
+                h1 {
+                    color: #34495e;
+                    font-size: 1.8em;
+                    margin-bottom: 5px; /* メッセージとの間隔を調整 */
+                    font-weight: 600;
+                }
 
-            participants.forEach(name => {
-                const div = document.createElement('div');
-                div.textContent = name;
-                currentParticipantListDiv.appendChild(div);
-            });
-        }
+                /* 歓迎メッセージのスタイル */
+                .welcome-message {
+                    font-size: 0.85em; /* 小さいフォントサイズ */
+                    color: #555;
+                    margin-bottom: 30px; 
+                    white-space: nowrap; /* テキストを折り返さない */
+                    overflow: hidden;    /* はみ出した部分を隠す */
+                    text-align: left;    /* 左寄せ */
+                    position: relative; /* アニメーションの基準点 */
+                    box-sizing: border-box;
+                    line-height: 1.5em; /* 行の高さを調整して中央に */
+                }
 
-        /**
-         * 全参加者リスト（固定30名）を生成し、UIを更新する
-         */
-        function generateAllParticipantsList() {
-            allParticipantListDiv.innerHTML = ''; // 既存のリストをクリア
+                /* マーキーアニメーションのキーフレーム定義 */
+                @keyframes marquee {
+                    0% { transform: translateX(100%); } /* 右端から開始 */
+                    100% { transform: translateX(calc(-100% - var(--text-width-px))); } /* 左端までスクロールし、テキストの幅分だけさらに移動 */
+                }
 
-            for (let i = 1; i <= 30; i++) {
-                const name = `氏名${i}`;
-                const link = document.createElement('a');
-                link.href = `https://example.com/profile/${name}`; // ★★★ 遷移させたいURLのパターンを設定してください ★★★
-                link.textContent = name;
-                link.target = '_blank'; // 新しいタブで開く
-                allParticipantListDiv.appendChild(link);
-            }
-        }
+                /* アニメーションを適用するクラス */
+                .welcome-message.marquee-active #welcomeMessageText {
+                    display: inline-block; /* アニメーションのために必要 */
+                    animation: marquee var(--marquee-duration) linear infinite;
+                }
 
-        /**
-         * ウェルカムメッセージにマーキーアニメーションを適用するかどうかを判断する
-         */
-        function setupWelcomeMessageAnimation() {
-            const welcomeMessageContainer = welcomeMessageText.parentElement;
-            const parentWidth = welcomeMessageContainer.offsetWidth;
-            const textWidth = welcomeMessageText.scrollWidth;
+                .input-group {
+                    margin-bottom: 18px;
+                    text-align: left;
+                }
 
-            // コンソールでデバッグ情報を出力
-            console.log(`[Marquee Debug] Parent width: ${parentWidth}px, Text width: ${textWidth}px`);
+                .input-group label {
+                    display: block;
+                    margin-bottom: 6px;
+                    font-weight: bold;
+                    color: #4a6572;
+                    font-size: 0.95em;
+                }
 
-            if (textWidth > parentWidth) {
-                // テキストがはみ出す場合のみアニメーションを適用
-                // アニメーションの速度を調整するために、動く距離に基づいて時間を計算
-                const animationDuration = textWidth / 50; // 例: 50px/秒の速度
+                .input-group input[type="text"] {
+                    width: calc(100% - 18px); /* パディングとボーダーを考慮 */
+                    padding: 10px;
+                    border: 1px solid #dbe2e9;
+                    border-radius: 6px;
+                    font-size: 1em;
+                    box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);
+                }
 
-                welcomeMessageText.style.setProperty('--marquee-duration', `${animationDuration}s`);
-                welcomeMessageText.style.setProperty('--text-width-px', `${textWidth}px`); // CSSでcalc()を使用するためにピクセル値として設定
-                welcomeMessageContainer.classList.add('marquee-active');
-                console.log(`[Marquee Debug] Marquee activated. Duration: ${animationDuration}s`);
-            } else {
-                // テキストがはみ出さない場合はアニメーションを削除
-                welcomeMessageContainer.classList.remove('marquee-active');
-                welcomeMessageText.style.removeProperty('--marquee-duration');
-                welcomeMessageText.style.removeProperty('--text-width-px');
-                console.log('[Marquee Debug] Marquee deactivated: Text fits.');
-            }
-        }
+                .room-buttons {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr) !important; /* PCでは3列 */
+                    gap: 5px; /* ボタン間の間隔を狭める */
+                    margin-bottom: 20px;
+                }
+
+                .room-buttons button {
+                    padding: 12px;
+                    font-size: 1em;
+                    border: 2px solid #a8e6cf; /* 薄い黄緑色のボーダー */
+                    border-radius: 6px;
+                    background-color: #e0ffe0; /* 薄い黄緑色の背景 */
+                    color: #2e8b57; /* 濃いめの緑文字 */
+                    cursor: pointer;
+                    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+                }
+
+                .room-buttons button.selected {
+                    background-color: #4CAF50; /* 緑色 */
+                    color: #fff; /* 文字色を白に */
+                    border-color: #388E3C; /* 少し濃い緑のボーダー */
+                    transform: translateY(-1px);
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                }
+
+                .room-buttons button:hover:not(.selected) {
+                    background-color: #c9f0dd; /* ホバー時の少し濃い黄緑 */
+                    border-color: #88ccaa;
+                }
+
+                .action-buttons {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 10px;
+                }
+
+                .action-buttons button {
+                    flex: 1;
+                    padding: 15px;
+                    font-size: 1.1em;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+                    font-weight: bold;
+                    text-transform: uppercase;
+                    letter-spacing: 0.2px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+                }
+
+                .action-buttons button:first-child {
+                    background-color: #007bff; /* 入室 - 青色 */
+                    color: white;
+                }
+
+                .action-buttons button:last-child {
+                    background-color: #e74c3c; /* 退室 - 赤色 */
+                    color: white;
+                }
+
+                .action-buttons button:first-child:hover {
+                    background-color: #0056b3; /* 青色のホバー */
+                    transform: translateY(-1px);
+                    box-shadow: 0 3px 6px rgba(0,0,0,0.12);
+                }
+
+                .action-buttons button:last-child:hover {
+                    background-color: #c0392b;
+                    transform: translateY(-1px);
+                    box-shadow: 0 3px 6px rgba(0,0,0,0.12);
+                }
+
+                #message {
+                    margin-top: 20px;
+                    padding: 12px;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    display: none;
+                    font-size: 0.95em;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+                }
+
+                #message.success {
+                    background-color: #d4edda;
+                    color: #155724;
+                    border: 1px solid #badbcc;
+                }
+
+                #message.error {
+                    background-color: #f8d7da;
+                    color: #721c24;
+                    border: 1px solid #f5c6cb;
+                }
+
+                #message.info {
+                    background-color: #cce5ff;
+                    color: #004085;
+                    border: 1px solid #b8daff;
+                }
+
+                /* 新しい区切り線スタイル */
+                .section-divider {
+                    border: none; /* デフォルトの線を無効化 */
+                    border-top: 1px solid #eee; 
+                    margin: 20px 0; /* 上下の余白 */
+                }
+                /* 歓迎メッセージ直後の線にのみ適用するマージン */
+                .divider-after-welcome {
+                    margin-top: 10px; /* 歓迎メッセージからの距離 */
+                    margin-bottom: 25px; /* 氏名入力欄への距離 */
+                }
 
 
-        // 入退室アクションを実行するメイン関数
-        async function executeAction(actionType) {
-            const name = nameInput.value.trim();
+                /* 入室状況セクション */
+                .status-list-section {
+                    margin-top: 30px; /* 線との距離を保つ */
+                    padding-top: 0;
+                    border-top: none;
+                }
 
-            // 入力値のバリデーション
-            if (!name) {
-                showMessage('氏名を入力してください。', 'error');
-                return;
-            }
-            if (!selectedRoom) {
-                showMessage('部屋番号を選択してください。', 'error');
-                return;
-            }
-            // GAS_WEB_APP_URLが正しいことを確認
-            if (GAS_WEB_APP_URL !== 'https://script.google.com/macros/s/AKfycbwbkAyGmklfmldaggiWtuqQRm4lkmF2IiBRiTW_SjU8_kl-PyfuLp_u1tfjD77ReKNC8Q/exec') {
-                showMessage('GAS WebアプリケーションのURLが正しくありません。コードを編集してください。', 'error');
-                return;
-            }
+                .status-list-section h2 {
+                    font-size: 1em;
+                    color: #34495e;
+                    margin-bottom: 15px;
+                    text-align: left;
+                    font-weight: bold;
+                }
 
-            showMessage('処理中...', 'info'); // ロード中メッセージ
+                #currentParticipantList {
+                    margin-top: 0;
+                    padding: 10px;
+                    border: 1px solid #dbe2e9;
+                    border-radius: 8px;
+                    max-height: 200px;
+                    overflow-y: auto;
+                    background-color: #f9f9f9;
+                    text-align: left;
+                    box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+                }
 
-            try {
-                // コンソールに送信先のURLを表示して確認
-                console.log('GAS Web App URL used:', GAS_WEB_APP_URL); 
-                
-                // GAS WebアプリケーションにデータをPOSTリクエストとして送信
-                const response = await fetch(GAS_WEB_APP_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        name: name,
-                        room: selectedRoom,
-                        actionType: actionType
-                    })
+                #currentParticipantList div {
+                    padding: 6px 0;
+                    border-bottom: 1px dashed #e0e0e0;
+                    color: #555;
+                    font-size: 0.95em;
+                }
+
+                #currentParticipantList div:last-child {
+                    border-bottom: none;
+                }
+
+                /* 参加者一覧セクションの追加スタイル */
+                .all-participants-list-section {
+                    margin-top: 30px; /* 入室状況リストとの距離 */
+                    padding-top: 0;
+                    border-top: none;
+                }
+
+                .all-participants-list-section h2 {
+                    font-size: 1em;
+                    color: #34495e;
+                    margin-bottom: 15px;
+                    text-align: left;
+                    font-weight: bold;
+                }
+
+                .all-participants-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr); /* 常に2列表示 */
+                    gap: 10px;
+                    padding: 10px;
+                    border: 1px solid #dbe2e9;
+                    border-radius: 8px;
+                    background-color: #f9f9f9;
+                    box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+                }
+
+                .all-participants-grid a {
+                    display: block;
+                    padding: 5px 0;
+                    color: #007bff;
+                    text-decoration: none;
+                    font-size: 0.95em;
+                    text-align: left;
+                    transition: color 0.2s ease;
+                }
+
+                .all-participants-grid a:hover {
+                    color: #0056b3;
+                    text-decoration: underline;
+                }
+
+                /* フッターセクションのスタイル */
+                .footer-section {
+                    margin-top: 30px;
+                    padding-top: 15px;
+                    border-top: 1px solid #eee;
+                    color: #777;
+                    font-size: 0.75em; 
+                    text-align: center;
+                }
+
+
+                /* スマートフォン向けレスポンシブデザイン */
+                @media (max-width: 480px) {
+                    body {
+                        padding: 10px;
+                    }
+
+                    .container {
+                        padding: 15px;
+                    }
+
+                    h1 {
+                        font-size: 1.6em;
+                    }
+
+                    .welcome-message {
+                        font-size: 0.8em;
+                        margin-bottom: 20px; /* スマホでは少し狭くする */
+                    }
+                    .divider-after-welcome {
+                        margin-top: 8px;
+                        margin-bottom: 20px;
+                    }
+
+                    .input-group label {
+                        font-size: 0.9em;
+                    }
+
+                    .input-group input[type="text"] {
+                        font-size: 0.95em;
+                        padding: 8px;
+                    }
+
+                    .room-buttons {
+                        grid-template-columns: repeat(2, 1fr); /* 部屋番号ボタンを2列に (画面幅によっては3列が厳しいため) */
+                        gap: 6px;
+                    }
+
+                    .room-buttons button {
+                        padding: 10px;
+                        font-size: 0.9em;
+                    }
+
+                    .action-buttons {
+                        flex-direction: column;
+                        gap: 8px;
+                    }
+
+                    .action-buttons button {
+                        width: 100%;
+                        padding: 12px;
+                        font-size: 1em;
+                    }
+
+                    #message {
+                        padding: 10px;
+                        font-size: 0.9em;
+                    }
+
+                    .section-divider {
+                        margin: 15px 0;
+                    }
+
+                    .status-list-section, .all-participants-list-section {
+                        margin-top: 20px;
+                        padding-top: 0;
+                    }
+                    .status-list-section h2, .all-participants-list-section h2 {
+                        font-size: 0.95em;
+                    }
+                    #currentParticipantList {
+                        max-height: 150px;
+                    }
+                    #currentParticipantList div {
+                        font-size: 0.9em;
+                        padding: 5px 0;
+                    }
+                    .all-participants-grid a {
+                        font-size: 0.9em;
+                    }
+                    .footer-section {
+                        margin-top: 20px;
+                        padding-top: 10px;
+                        font-size: 0.7em;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>入退室システム</h1>
+                <!-- 歓迎メッセージの追加 -->
+                <p class="welcome-message">
+                    <span id="welcomeMessageText">〇月〇日(〇)／ジャンカラ 〇〇〇店／11時～19時開催🎤本日は、〇〇〇〇〇会にご参加いただきありがとうございます。</span>
+                </p>
+                <!-- 歓迎メッセージと氏名入力欄の間に線を追加 -->
+                <hr class="section-divider divider-after-welcome">
+
+                <div class="input-group">
+                    <label for="nameInput">氏名:</label>
+                    <input type="text" id="nameInput" placeholder="氏名を入力してください" autocomplete="name">
+                </div>
+
+                <div class="input-group">
+                    <label>部屋番号:</label>
+                    <div class="room-buttons">
+                        <button data-room="A" aria-label="A部屋を選択">A部屋</button>
+                        <button data-room="B" aria-label="B部屋を選択">B部屋</button>
+                        <button data-room="C" aria-label="C部屋を選択">C部屋</button>
+                        <button data-room="D" aria-label="D部屋を選択">D部屋</button>
+                        <button data-room="E" aria-label="E部屋を選択">E部屋</button>
+                        <button data-room="F" aria-label="F部屋を選択">F部屋</button>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="enterButton" aria-label="入室">入室</button>
+                    <button id="exitButton" aria-label="退室">退室</button>
+                </div>
+
+                <div id="message" role="alert" aria-live="polite"></div>
+
+                <!-- 退室ボタンと入室状況の間に線を追加 -->
+                <hr class="section-divider">
+
+                <div class="status-list-section">
+                    <h2>入室状況</h2>
+                    <div id="currentParticipantList">
+                        <div>現在入室中の参加者はいません。</div>
+                    </div>
+                </div>
+
+                <!-- 参加者一覧セクションの追加 -->
+                <div class="all-participants-list-section">
+                    <h2>参加者一覧</h2>
+                    <div id="allParticipantList" class="all-participants-grid">
+                        <!-- JavaScriptでここに30名の名前が生成されます -->
+                    </div>
+                </div>
+
+                <!-- フッターセクションの追加 -->
+                <div class="footer-section">
+                    &copy; 2025 株式会社 柚子ポテト
+                </div>
+            </div>
+
+            <script>
+                const nameInput = document.getElementById('nameInput');
+                const roomButtons = document.querySelectorAll('.room-buttons button');
+                const enterButton = document.getElementById('enterButton');
+                const exitButton = document.getElementById('exitButton');
+                const messageDiv = document.getElementById('message');
+                const currentParticipantListDiv = document.getElementById('currentParticipantList');
+                const allParticipantListDiv = document.getElementById('allParticipantList');
+                const welcomeMessageText = document.getElementById('welcomeMessageText');
+
+                let selectedRoom = '';
+
+                // ★★★ あなたのGAS WebアプリケーションのURLをここに設定しました ★★★
+                const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwbkAyGmklfmldaggiWtuqQRm4lkmF2IiBRiTW_SjU8_kl-PyfuLp_u1tfjD77ReKNC8Q/exec'; 
+
+                // 部屋番号ボタンの選択状態を管理
+                roomButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        roomButtons.forEach(btn => btn.classList.remove('selected'));
+                        button.classList.add('selected');
+                        selectedRoom = button.dataset.room;
+                    });
                 });
 
-                // レスポンスをJSONとしてパース
-                const result = await response.json();
+                // ユーザーへのメッセージ表示関数
+                function showMessage(msg, type) {
+                    messageDiv.textContent = msg;
+                    messageDiv.className = ''; 
+                    messageDiv.classList.add(type); 
+                    messageDiv.style.display = 'block';
 
-                // GASからのレスポンスに基づいてメッセージを表示
-                if (result.success) {
-                    showMessage(result.message, 'success');
-                    nameInput.value = '';
-                    roomButtons.forEach(btn => btn.classList.remove('selected'));
-                    selectedRoom = '';
-                    loadCurrentParticipantList(); // 成功後、入室状況を更新
-                } else {
-                    showMessage(`エラー: ${result.message}`, 'error');
+                    setTimeout(() => {
+                        messageDiv.style.display = 'none';
+                    }, 5000); 
                 }
-            } catch (error) {
-                console.error('GAS Webアプリケーションとの通信に失敗しました:', error);
-                showMessage('サーバーとの通信に失敗しました。ネットワーク接続またはGAS Webアプリケーションの稼働状況を確認してください。', 'error');
-            }
-        }
 
-        // ボタンにイベントリスナーを設定
-        enterButton.addEventListener('click', () => executeAction('enter'));
-        exitButton.addEventListener('click', () => executeAction('exit'));
+                /**
+                 * 現在入室中の参加者リストをGASから取得し、UIを更新する
+                 */
+                async function loadCurrentParticipantList() {
+                    showMessage('入室状況を読み込み中...', 'info'); 
+                    try {
+                        const response = await fetch(GAS_WEB_APP_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ actionType: 'getList' })
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            updateCurrentParticipantListUI(result.participants);
+                            setTimeout(() => showMessage('入室状況を更新しました。', 'success'), 100);
+                        } else {
+                            showMessage(`入室状況の取得エラー: ${result.message}`, 'error');
+                        }
+                    } catch (error) {
+                        console.error('入室状況の通信エラー:', error);
+                        showMessage('入室状況の取得に失敗しました。ネットワーク接続を確認してください。', 'error');
+                    }
+                }
 
-        // ページロード時に各種リストを読み込む
-        document.addEventListener('DOMContentLoaded', () => {
-            loadCurrentParticipantList(); // 入室状況を読み込む
-            generateAllParticipantsList(); // 参加者一覧を生成する
-            setupWelcomeMessageAnimation(); // ウェルカムメッセージのアニメーションをセットアップ
+                /**
+                 * 取得した入室中の参加者リストでUIを更新する
+                 * @param {Array<string>} participants - 入室中の参加者の名前の配列
+                 */
+                function updateCurrentParticipantListUI(participants) {
+                    currentParticipantListDiv.innerHTML = ''; // 既存のリストをクリア
 
-            // ウィンドウサイズ変更時にアニメーションを再評価 (ポップアップのサイズは固定なので通常は不要ですが、念のため残しておきます)
-            // window.addEventListener('resize', setupWelcomeMessageAnimation);
-        });
-    </script>
-</body>
-</html>
+                    if (!participants || participants.length === 0) {
+                        currentParticipantListDiv.innerHTML = '<div>現在入室中の参加者はいません。</div>';
+                        return;
+                    }
+
+                    participants.forEach(name => {
+                        const div = document.createElement('div');
+                        div.textContent = name;
+                        currentParticipantListDiv.appendChild(div);
+                    });
+                }
+
+                /**
+                 * 全参加者リスト（固定30名）を生成し、UIを更新する
+                 */
+                function generateAllParticipantsList() {
+                    allParticipantListDiv.innerHTML = ''; // 既存のリストをクリア
+
+                    for (let i = 1; i <= 30; i++) {
+                        const name = `氏名${i}`;
+                        const link = document.createElement('a');
+                        link.href = `https://example.com/profile/${name}`; // ★★★ 遷移させたいURLのパターンを設定してください ★★★
+                        link.textContent = name;
+                        link.target = '_blank'; // 新しいタブで開く
+                        allParticipantListDiv.appendChild(link);
+                    }
+                }
+
+                /**
+                 * ウェルカムメッセージにマーキーアニメーションを適用するかどうかを判断する
+                 */
+                function setupWelcomeMessageAnimation() {
+                    const welcomeMessageContainer = welcomeMessageText.parentElement;
+                    const parentWidth = welcomeMessageContainer.offsetWidth;
+                    const textWidth = welcomeMessageText.scrollWidth;
+
+                    // コンソールでデバッグ情報を出力
+                    console.log(`[Marquee Debug] Parent width: ${parentWidth}px, Text width: ${textWidth}px`);
+
+                    if (textWidth > parentWidth) {
+                        // テキストがはみ出す場合のみアニメーションを適用
+                        // アニメーションの速度を調整するために、動く距離に基づいて時間を計算
+                        const animationDuration = textWidth / 50; // 例: 50px/秒の速度
+
+                        welcomeMessageText.style.setProperty('--marquee-duration', `${animationDuration}s`);
+                        welcomeMessageText.style.setProperty('--text-width-px', `${textWidth}px`); // CSSでcalc()を使用するためにピクセル値として設定
+                        welcomeMessageContainer.classList.add('marquee-active');
+                        console.log(`[Marquee Debug] Marquee activated. Duration: ${animationDuration}s`);
+                    } else {
+                        // テキストがはみ出さない場合はアニメーションを削除
+                        welcomeMessageContainer.classList.remove('marquee-active');
+                        welcomeMessageText.style.removeProperty('--marquee-duration');
+                        welcomeMessageText.style.removeProperty('--text-width-px');
+                        console.log('[Marquee Debug] Marquee deactivated: Text fits.');
+                    }
+                }
+
+
+                // 入退室アクションを実行するメイン関数
+                async function executeAction(actionType) {
+                    const name = nameInput.value.trim();
+
+                    // 入力値のバリデーション
+                    if (!name) {
+                        showMessage('氏名を入力してください。', 'error');
+                        return;
+                    }
+                    if (!selectedRoom) {
+                        showMessage('部屋番号を選択してください。', 'error');
+                        return;
+                    }
+                    // GAS_WEB_APP_URLが正しいことを確認
+                    if (GAS_WEB_APP_URL !== 'https://script.google.com/macros/s/AKfycbwbkAyGmklfmldaggiWtuqQRm4lkmF2IiBRiTW_SjU8_kl-PyfuLp_u1tfjD77ReKNC8Q/exec') {
+                        showMessage('GAS WebアプリケーションのURLが正しくありません。コードを編集してください。', 'error');
+                        return;
+                    }
+
+                    showMessage('処理中...', 'info'); // ロード中メッセージ
+
+                    try {
+                        // コンソールに送信先のURLを表示して確認
+                        console.log('GAS Web App URL used:', GAS_WEB_APP_URL); 
+                        
+                        // GAS WebアプリケーションにデータをPOSTリクエストとして送信
+                        const response = await fetch(GAS_WEB_APP_URL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                name: name,
+                                room: selectedRoom,
+                                actionType: actionType
+                            })
+                        });
+
+                        // レスポンスをJSONとしてパース
+                        const result = await response.json();
+
+                        // GASからのレスポンスに基づいてメッセージを表示
+                        if (result.success) {
+                            showMessage(result.message, 'success');
+                            nameInput.value = '';
+                            roomButtons.forEach(btn => btn.classList.remove('selected'));
+                            selectedRoom = '';
+                            loadCurrentParticipantList(); // 成功後、入室状況を更新
+                        } else {
+                            showMessage(`エラー: ${result.message}`, 'error');
+                        }
+                    } catch (error) {
+                        console.error('GAS Webアプリケーションとの通信に失敗しました:', error);
+                        showMessage('サーバーとの通信に失敗しました。ネットワーク接続またはGAS Webアプリケーションの稼働状況を確認してください。', 'error');
+                    }
+                }
+
+                // ボタンにイベントリスナーを設定
+                enterButton.addEventListener('click', () => executeAction('enter'));
+                exitButton.addEventListener('click', () => executeAction('exit'));
+
+                // ページロード時に各種リストを読み込む
+                document.addEventListener('DOMContentLoaded', () => {
+                    loadCurrentParticipantList(); // 入室状況を読み込む
+                    generateAllParticipantsList(); // 参加者一覧を生成する
+                    setupWelcomeMessageAnimation(); // ウェルカムメッセージのアニメーションをセットアップ
+
+                    // ウィンドウサイズ変更時にアニメーションを再評価 (ポップアップのサイズは固定なので通常は不要ですが、念のため残しておきます)
+                    // window.addEventListener('resize', setupWelcomeMessageAnimation);
+                });
+            </script>
+        </body>
+        </html>
+        
