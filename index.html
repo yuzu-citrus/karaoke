@@ -491,14 +491,9 @@
         const welcomeMessageText = document.getElementById('welcomeMessageText');
 
         let selectedRoom = '';
-        // GASと連携するため、localStorageからのデータ読み込み・保存は不要
-        // let currentParticipants = []; // このブラウザで入室中の参加者データを保持する配列
 
         // ★★★ あなたのGAS WebアプリケーションのURLをここに貼り付けます ★★★
-        // 例: 'https://script.google.com/macros/s/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/exec'
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzCMTIDqG7iS38Y0-SyMOS2BR1QkRgSex6lB5t4_l88UJxAjztnRP5sFJ0egmVb2ynYKg/exec
-
-'; 
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzCMTIDqG7iS38Y0-SyMOS2BR1QkRgSex6lB5t4_l88UJxAjztnRP5sFJ0egmVb2ynYKg/exec'; 
 
         // 部屋番号ボタンの選択状態を管理
         roomButtons.forEach(button => {
@@ -730,7 +725,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadCurrentParticipantListFromGAS(); // 入室状況をGASから読み込む
             generateAllParticipantsList(); // 参加者一覧を生成する
-            setupWelcomeMessageAnimation(); // ウェルカムメッセージのアニメーションをセットアップ
+            
+            // アニメーションのセットアップを少し遅らせることで、正確な要素幅を取得できるようにする
+            setTimeout(setupWelcomeMessageAnimation, 100); 
 
             // 5秒ごとにGASから入室状況を自動更新（リアルタイム性を高めるため）
             setInterval(loadCurrentParticipantListFromGAS, 5000);
