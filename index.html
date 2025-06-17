@@ -286,6 +286,15 @@
             font-size: 0.95em;
         }
 
+        /* テーブルの行にカーソルを合わせると色が変わるように */
+        .room-participant-table tbody tr {
+            cursor: pointer; /* クリック可能であることを示すカーソル */
+            transition: background-color 0.2s ease;
+        }
+        .room-participant-table tbody tr:hover {
+            background-color: #e6f7ff; /* ホバー時の背景色 */
+        }
+
         /* ----- ここまで新しいスタイル ----- */
 
 
@@ -577,7 +586,8 @@
 
                     const thead = document.createElement('thead');
                     const headerRow = document.createElement('tr');
-                    ['氏名', '入室時間'].forEach(text => {
+                    // ヘッダーは「氏名」のみ
+                    ['氏名'].forEach(text => {
                         const th = document.createElement('th');
                         th.textContent = text;
                         headerRow.appendChild(th);
@@ -594,13 +604,19 @@
                         nameCell.textContent = p.name;
                         row.appendChild(nameCell);
 
-                        const entryTimeCell = document.createElement('td');
-                        const entryDate = new Date(p.entryTime); // GASから取得したタイムスタンプを使用
-                        // 秒表示なしの時分のみ
-                        const hours = String(entryDate.getHours()).padStart(2, '0');
-                        const minutes = String(entryDate.getMinutes()).padStart(2, '0');
-                        entryTimeCell.textContent = `${hours}:${minutes}`;
-                        row.appendChild(entryTimeCell);
+                        // クリックで氏名と部屋番号を入力欄に反映するイベントリスナーを追加
+                        row.addEventListener('click', () => {
+                            nameInput.value = p.name;
+                            // 部屋ボタンを選択状態にする
+                            roomButtons.forEach(btn => {
+                                btn.classList.remove('selected');
+                                if (btn.dataset.room === p.room) {
+                                    btn.classList.add('selected');
+                                    selectedRoom = p.room; // selectedRoom変数も更新
+                                }
+                            });
+                            showMessage(`${p.name} (${p.room}部屋) を選択しました。`, 'info');
+                        });
 
                         tbody.appendChild(row);
                     });
